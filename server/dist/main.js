@@ -4,6 +4,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
+import projectRouter from "./routes/projectRoutes.js";
 dotenv.config();
 const app = Express();
 // Middleware
@@ -15,10 +16,11 @@ app.use(Express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 // Routing
-app.use('/', (req, res, next) => {
+app.get('/', (req, res, next) => {
     console.log("Server is running");
     res.send("Server is running");
 });
+app.use('/projects', projectRouter);
 // Global error handling
 app.use((err, req, res, next) => {
     console.error(err.stack);

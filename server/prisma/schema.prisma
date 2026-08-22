@@ -35,6 +35,7 @@ model Project {
   name        String
   slug        String    @unique
   description String?
+  status      String
   startDate   DateTime?
   endDate     DateTime?
   createdAt   DateTime  @default(now()) @map("created_at")

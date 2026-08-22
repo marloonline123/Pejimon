@@ -1,8 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
-
-const prisma = new PrismaClient();
+import "dotenv/config";
+import prisma from "../src/prismaClient.ts";
 
 async function deleteAllData(orderedFileNames: string[]) {
   const modelNames = orderedFileNames.map((fileName) => {
