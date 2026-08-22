@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "body": "I'll start working on the hero section first.",
+    "taskId": 1,
+    "userId": 1
+  },
+  {
+    "id": 2,
+    "body": "Sounds good, make sure to follow the new brand guidelines.",
+    "taskId": 1,
+    "userId": 2,
+    "parentId": 1
+  }
+]

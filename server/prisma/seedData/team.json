@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "name": "Frontend Team",
+    "slug": "frontend-team",
+    "description": "Responsible for the UI/UX",
+    "productOwnerUserId": 1,
+    "projectManagerUserId": 2
+  },
+  {
+    "id": 2,
+    "name": "Backend Team",
+    "slug": "backend-team",
+    "description": "Responsible for the server and database",
+    "productOwnerUserId": 1,
+    "projectManagerUserId": 3
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "name": "Design Homepage",
+    "slug": "design-homepage",
+    "description": "Create Figma designs for the new homepage.",
+    "status": "In Progress",
+    "priority": "High",
+    "tags": "design,ui",
+    "startDate": "2026-09-01T00:00:00Z",
+    "dueDate": "2026-09-15T00:00:00Z",
+    "points": 5,
+    "projectId": 1,
+    "authorId": 2,
+    "assignedUserId": 1
+  },
+  {
+    "id": 2,
+    "name": "Setup Database",
+    "slug": "setup-database",
+    "description": "Initialize the PostgreSQL database with Prisma.",
+    "status": "To Do",
+    "priority": "Critical",
+    "tags": "backend,database",
+    "startDate": "2026-09-05T00:00:00Z",
+    "dueDate": "2026-09-10T00:00:00Z",
+    "points": 8,
+    "projectId": 1,
+    "authorId": 3,
+    "assignedUserId": 3
+  },
+  {
+    "id": 3,
+    "name": "Create API Endpoints",
+    "slug": "create-api-endpoints",
+    "description": "Build the REST API endpoints for user authentication.",
+    "status": "To Do",
+    "priority": "Medium",
+    "tags": "backend,api",
+    "startDate": "2026-10-05T00:00:00Z",
+    "dueDate": "2026-10-20T00:00:00Z",
+    "points": 13,
+    "projectId": 2,
+    "authorId": 1,
+    "assignedUserId": 3
+  }
+]

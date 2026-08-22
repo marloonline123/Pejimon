@@ -1,0 +1,159 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  username           String   @unique
+  email              String   @unique
+  password           String
+  profilePicturePath String?
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  teamUsers       TeamUser[]
+  ownedTeams      Team[]           @relation("TeamProductOwner")
+  managedTeams    Team[]           @relation("TeamProjectManager")
+  tasks           Task[]           @relation("TaskAuthor")
+  assignedTasks   Task[]           @relation("TaskAssignee")
+  taskAssignments TaskAssignment[]
+  comments        Comment[]
+  attachments     Attachment[]
+
+  @@map("users")
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  tasks        Task[]
+  projectTeams ProjectTeam[]
+
+  @@map("projects")
+}
+
+model Team {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  slug                 String   @unique
+  description          String?
+  productOwnerUserId   Int
+  projectManagerUserId Int
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  productOwner   User @relation("TeamProductOwner", fields: [productOwnerUserId], references: [id])
+  projectManager User @relation("TeamProjectManager", fields: [projectManagerUserId], references: [id])
+
+  teamUsers    TeamUser[]
+  projectTeams ProjectTeam[]
+
+  @@map("teams")
+}
+
+model TeamUser {
+  userId Int
+  teamId Int
+
+  user User @relation(fields: [userId], references: [id])
+  team Team @relation(fields: [teamId], references: [id])
+
+  @@id([userId, teamId])
+  @@map("team_user")
+}
+
+model Task {
+  id             Int       @id @default(autoincrement())
+  name           String
+  slug           String    @unique
+  description    String?
+  status         String?
+  priority       String?
+  tags           String?
+  startDate      DateTime?
+  dueDate        DateTime?
+  points         Int?
+  projectId      Int
+  authorId       Int
+  assignedUserId Int
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  project         Project          @relation(fields: [projectId], references: [id])
+  author          User             @relation("TaskAuthor", fields: [authorId], references: [id])
+  assignee        User             @relation("TaskAssignee", fields: [assignedUserId], references: [id])
+  taskAssignments TaskAssignment[]
+  comments        Comment[]
+  attachments     Attachment[]
+
+  @@map("tasks")
+}
+
+model ProjectTeam {
+  projectId Int
+  teamId    Int
+
+  project Project @relation(fields: [projectId], references: [id])
+  team    Team    @relation(fields: [teamId], references: [id])
+
+  @@id([projectId, teamId])
+  @@map("project_task")
+}
+
+model TaskAssignment {
+  id          Int      @id @default(autoincrement())
+  description String?
+  taskId      Int
+  userId      Int
+  parentId    Int?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  task   Task     @relation(fields: [taskId], references: [id])
+  user   User     @relation(fields: [userId], references: [id])
+  parent Comment? @relation(fields: [parentId], references: [id])
+
+  @@map("task_assignments")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  body      String
+  taskId    Int
+  userId    Int
+  parentId  Int?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  task    Task      @relation(fields: [taskId], references: [id])
+  user    User      @relation(fields: [userId], references: [id])
+  parent  Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
+  replies Comment[] @relation("CommentToComment")
+
+  taskAssignments TaskAssignment[]
+
+  @@map("comments")
+}
+
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  path      String?
+  taskId    Int
+  userId    Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  task Task @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("attachments")
+}

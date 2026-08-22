@@ -1,0 +1,14 @@
+[
+  {
+    "projectId": 1,
+    "teamId": 1
+  },
+  {
+    "projectId": 1,
+    "teamId": 2
+  },
+  {
+    "projectId": 2,
+    "teamId": 1
+  }
+]
