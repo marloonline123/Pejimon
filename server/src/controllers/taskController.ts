@@ -1,16 +1,31 @@
 import type { Request, Response } from "express";
 import prisma from "../prismaClient.js";
-import type { ProjectSchema } from "../schemas/projectSchema.js";
+import type { TaskSchema } from "../schemas/taskSchema.js";
 
-export const index = async (req: Request, res: Response): Promise<void> => {
+export const index = async (req: Request<{}, {}, {projectId: string|undefined|null}>, res: Response): Promise<void> => {
     try {
-        const projects = await prisma.project.findMany();
-        
-        res.status(200).json({
-            success: true,
-            message: "Projects fetched successfully",
-            data: projects
+        const { projectSlug } = req.query;
+        const project = await prisma.project.findFirst({
+            where: {
+                slug: projectSlug
+            },
+            include: {
+                tasks: true
+            }
+        });
+
+        if(project){
+            res.status(200).json({
+                success: true,
+                message: "Tasks fetched successfully",
+                data: project.tasks
+            })
+        }
+        res.status(404).json({
+            success: false,
+            message: "Project not found",
         })
+
     } catch (error) {
         console.error("Prisma Error:", error);
         res.status(500).json({
@@ -21,22 +36,28 @@ export const index = async (req: Request, res: Response): Promise<void> => {
     }
 }
 
-export const store = async (req: Request<{}, {}, ProjectSchema>, res: Response): Promise<void> => {
+export const store = async (req: Request<{}, {}, TaskSchema>, res: Response): Promise<void> => {
     try {
-        const project = await prisma.project.create({
+        const task = await prisma.task.create({
             data: {
                 name: req.body.name,
-                description: req.body.description,
+                description: req.body.description || null,
                 status: req.body.status,
+                priority: req.body.priority,
+                tags: req.body.tags || null,
                 startDate: req.body.startDate,
-                endDate: req.body.endDate,
+                dueDate: req.body.dueDate,
+                points: Number(req.body.points) || 0,
+                projectId: Number(req.body.projectId),
+                authorId: Number(req.body.authorId),
+                assignedUserId: Number(req.body.assignedUserId),
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
             }
         });
         res.status(201).json({
             success: true,
-            message: "Project created successfully",
-            data: project
+            message: "Task created successfully",
+            data: task
         })
     } catch (error) {
         console.error("Prisma Error:", error);
@@ -51,15 +72,15 @@ export const store = async (req: Request<{}, {}, ProjectSchema>, res: Response):
 export const show = async (req: Request, res: Response): Promise<void> => {
     try {
         const slug = req.params.slug as string;
-        const project = await prisma.project.findFirst({
+        const task = await prisma.task.findFirst({
             where: {
                 slug: slug
             },
         });
         res.status(200).json({
             success: true,
-            message: "Project fetched successfully",
-            data: project
+            message: "Task fetched successfully",
+            data: task
         })
     } catch (error) {
         console.error("Prisma Error:", error);
@@ -74,7 +95,7 @@ export const show = async (req: Request, res: Response): Promise<void> => {
 export const update = async (req: Request, res: Response): Promise<void> => {
     try {
         const slug = req.params.slug as string;
-        const project = await prisma.project.update({
+        const task = await prisma.task.update({
             where: {
                 slug: slug
             },
@@ -82,15 +103,21 @@ export const update = async (req: Request, res: Response): Promise<void> => {
                 name: req.body.name,
                 description: req.body.description,
                 status: req.body.status,
+                priority: req.body.priority,
+                tags: req.body.tags,
                 startDate: req.body.startDate,
-                endDate: req.body.endDate,
+                dueDate: req.body.dueDate,
+                points: req.body.points,
+                projectId: req.body.projectId,
+                authorId: req.body.authorId,
+                assignedUserId: req.body.assignedUserId,
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
             }
         });
         res.status(200).json({
             success: true,
-            message: "Project updated successfully",
-            data: project
+            message: "Task updated successfully",
+            data: task
         })
     } catch (error) {
         console.error("Prisma Error:", error);
@@ -105,22 +132,20 @@ export const update = async (req: Request, res: Response): Promise<void> => {
 export const destroy = async (req: Request, res: Response): Promise<void> => {
     try {
         const slug = req.params.slug as string;
-        const project = await prisma.project.delete({
+        const task = await prisma.task.delete({
             where: {
                 slug: slug
             },
             include: {
-                tasks: {
-                    include: {
-                        taskAssignments: true
-                    }
-                }
+                taskAssignments: true,
+                comments: true,
+                attachments: true
             }
         });
         res.status(200).json({
             success: true,
-            message: "Project deleted successfully",
-            data: project
+            message: "Task deleted successfully",
+            data: task
         })
     } catch (error) {
         console.error("Prisma Error:", error);

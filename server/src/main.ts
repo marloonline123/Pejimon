@@ -5,6 +5,7 @@ import helmet from "helmet";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import projectRouter from "./routes/projectRoutes.js";
+import taskRouter from "./routes/taskRoutes.js";
 
 dotenv.config();
 
@@ -16,11 +17,11 @@ const app: Application = Express();
 
 app.use(cors());
 app.use(helmet());
+app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("dev"));
 app.use(Express.json());
-app.use(Express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // Routing
 app.get('/', (req: Request, res: Response, next: NextFunction) => {
@@ -28,6 +29,7 @@ app.get('/', (req: Request, res: Response, next: NextFunction) => {
     res.send("Server is running");
 });
 app.use('/projects', projectRouter);
+app.use('/tasks', taskRouter);
 
 // Global error handling
 

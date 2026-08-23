@@ -1,11 +1,11 @@
 import prisma from "../prismaClient.js";
 export const index = async (req, res) => {
     try {
-        const projects = await prisma.project.findMany();
+        const tasks = await prisma.task.findMany();
         res.status(200).json({
             success: true,
-            message: "Projects fetched successfully",
-            data: projects
+            message: "Tasks fetched successfully",
+            data: tasks
         });
     }
     catch (error) {
@@ -19,20 +19,26 @@ export const index = async (req, res) => {
 };
 export const store = async (req, res) => {
     try {
-        const project = await prisma.project.create({
+        const task = await prisma.task.create({
             data: {
                 name: req.body.name,
-                description: req.body.description,
+                description: req.body.description || null,
                 status: req.body.status,
+                priority: req.body.priority,
+                tags: req.body.tags || null,
                 startDate: req.body.startDate,
-                endDate: req.body.endDate,
+                dueDate: req.body.dueDate,
+                points: Number(req.body.points) || 0,
+                projectId: Number(req.body.projectId),
+                authorId: Number(req.body.authorId),
+                assignedUserId: Number(req.body.assignedUserId),
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
             }
         });
         res.status(201).json({
             success: true,
-            message: "Project created successfully",
-            data: project
+            message: "Task created successfully",
+            data: task
         });
     }
     catch (error) {
@@ -47,15 +53,15 @@ export const store = async (req, res) => {
 export const show = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const project = await prisma.project.findFirst({
+        const task = await prisma.task.findFirst({
             where: {
                 slug: slug
             },
         });
         res.status(200).json({
             success: true,
-            message: "Project fetched successfully",
-            data: project
+            message: "Task fetched successfully",
+            data: task
         });
     }
     catch (error) {
@@ -70,7 +76,7 @@ export const show = async (req, res) => {
 export const update = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const project = await prisma.project.update({
+        const task = await prisma.task.update({
             where: {
                 slug: slug
             },
@@ -78,15 +84,21 @@ export const update = async (req, res) => {
                 name: req.body.name,
                 description: req.body.description,
                 status: req.body.status,
+                priority: req.body.priority,
+                tags: req.body.tags,
                 startDate: req.body.startDate,
-                endDate: req.body.endDate,
+                dueDate: req.body.dueDate,
+                points: req.body.points,
+                projectId: req.body.projectId,
+                authorId: req.body.authorId,
+                assignedUserId: req.body.assignedUserId,
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
             }
         });
         res.status(200).json({
             success: true,
-            message: "Project updated successfully",
-            data: project
+            message: "Task updated successfully",
+            data: task
         });
     }
     catch (error) {
@@ -101,22 +113,20 @@ export const update = async (req, res) => {
 export const destroy = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const project = await prisma.project.delete({
+        const task = await prisma.task.delete({
             where: {
                 slug: slug
             },
             include: {
-                tasks: {
-                    include: {
-                        taskAssignments: true
-                    }
-                }
+                taskAssignments: true,
+                comments: true,
+                attachments: true
             }
         });
         res.status(200).json({
             success: true,
-            message: "Project deleted successfully",
-            data: project
+            message: "Task deleted successfully",
+            data: task
         });
     }
     catch (error) {
@@ -128,4 +138,4 @@ export const destroy = async (req, res) => {
         });
     }
 };
-//# sourceMappingURL=projectController.js.map
+//# sourceMappingURL=taskController.js.map
