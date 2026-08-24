@@ -1,1 +1,1 @@
-{"version":3,"file":"projectSchema.d.ts","sourceRoot":"","sources":["../../src/schemas/projectSchema.ts"],"names":[],"mappings":"AAAA,OAAO,CAAC,MAAM,KAAK,CAAC;AAEpB,QAAA,MAAM,aAAa;;;;;;;;;;;iBAMjB,CAAA;eAEa,aAAa;AAE5B,MAAM,MAAM,aAAa,GAAG,CAAC,CAAC,KAAK,CAAC,OAAO,aAAa,CAAC,CAAC"}
+{"version":3,"file":"projectSchema.d.ts","sourceRoot":"","sources":["../../src/schemas/projectSchema.ts"],"names":[],"mappings":"AAAA,OAAO,CAAC,MAAM,KAAK,CAAC;AAGpB,QAAA,MAAM,aAAa;;;;;;;;;;;;iBASjB,CAAC;eAEY,aAAa;AAE5B,MAAM,MAAM,aAAa,GAAG,CAAC,CAAC,KAAK,CAAC,OAAO,aAAa,CAAC,CAAC"}

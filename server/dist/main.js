@@ -6,6 +6,7 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import projectRouter from "./routes/projectRoutes.js";
 import taskRouter from "./routes/taskRoutes.js";
+import teamRouter from "./routes/teamRoutes.js";
 dotenv.config();
 const app = Express();
 // Middleware
@@ -23,6 +24,7 @@ app.get('/', (req, res, next) => {
 });
 app.use('/projects', projectRouter);
 app.use('/tasks', taskRouter);
+app.use('/teams', teamRouter);
 // Global error handling
 app.use((err, req, res, next) => {
     console.error(err.stack);

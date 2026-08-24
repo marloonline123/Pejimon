@@ -1,11 +1,57 @@
 import prisma from "../prismaClient.js";
 export const index = async (req, res) => {
     try {
-        const tasks = await prisma.task.findMany();
+        const projectSlug = req.query.projectSlug;
+        const search = req.query.search;
+        const status = req.query.status;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        let projectId = undefined;
+        if (projectSlug) {
+            const project = await prisma.project.findFirst({
+                where: { slug: projectSlug },
+                select: { id: true }
+            });
+            if (project) {
+                projectId = project.id;
+            }
+            else {
+                res.status(404).json({ success: false, message: "Project not found" });
+                return;
+            }
+        }
+        const where = {};
+        if (projectId)
+            where.projectId = projectId;
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: "insensitive" } },
+                { description: { contains: search, mode: "insensitive" } },
+            ];
+        }
+        if (status && status !== "All") {
+            where.status = status;
+        }
+        const [tasks, total] = await Promise.all([
+            prisma.task.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.task.count({ where })
+        ]);
         res.status(200).json({
             success: true,
             message: "Tasks fetched successfully",
-            data: tasks
+            data: tasks,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
         });
     }
     catch (error) {

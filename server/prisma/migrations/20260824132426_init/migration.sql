@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "Status" AS ENUM ('ToDo', 'WorkInProgress', 'UnderReview', 'Completed');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" SERIAL NOT NULL,
@@ -17,9 +20,11 @@ CREATE TABLE "projects" (
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT,
+    "status" "Status" NOT NULL,
     "startDate" TIMESTAMP(3),
     "endDate" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" INTEGER NOT NULL,
 
     CONSTRAINT "projects_pkey" PRIMARY KEY ("id")
 );
@@ -51,12 +56,12 @@ CREATE TABLE "tasks" (
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT,
-    "status" TEXT,
-    "priority" TEXT,
+    "status" "Status" NOT NULL,
+    "priority" TEXT NOT NULL,
     "tags" TEXT,
-    "startDate" TIMESTAMP(3),
-    "dueDate" TIMESTAMP(3),
-    "points" INTEGER,
+    "startDate" TIMESTAMP(3) NOT NULL,
+    "dueDate" TIMESTAMP(3) NOT NULL,
+    "points" INTEGER NOT NULL,
     "projectId" INTEGER NOT NULL,
     "authorId" INTEGER NOT NULL,
     "assignedUserId" INTEGER NOT NULL,
@@ -66,11 +71,11 @@ CREATE TABLE "tasks" (
 );
 
 -- CreateTable
-CREATE TABLE "project_task" (
+CREATE TABLE "project_team" (
     "projectId" INTEGER NOT NULL,
     "teamId" INTEGER NOT NULL,
 
-    CONSTRAINT "project_task_pkey" PRIMARY KEY ("projectId","teamId")
+    CONSTRAINT "project_team_pkey" PRIMARY KEY ("projectId","teamId")
 );
 
 -- CreateTable
@@ -125,6 +130,9 @@ CREATE UNIQUE INDEX "teams_slug_key" ON "teams"("slug");
 CREATE UNIQUE INDEX "tasks_slug_key" ON "tasks"("slug");
 
 -- AddForeignKey
+ALTER TABLE "projects" ADD CONSTRAINT "projects_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "teams" ADD CONSTRAINT "teams_productOwnerUserId_fkey" FOREIGN KEY ("productOwnerUserId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -146,10 +154,10 @@ ALTER TABLE "tasks" ADD CONSTRAINT "tasks_authorId_fkey" FOREIGN KEY ("authorId"
 ALTER TABLE "tasks" ADD CONSTRAINT "tasks_assignedUserId_fkey" FOREIGN KEY ("assignedUserId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "project_task" ADD CONSTRAINT "project_task_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "project_team" ADD CONSTRAINT "project_team_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "projects"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "project_task" ADD CONSTRAINT "project_task_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "teams"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "project_team" ADD CONSTRAINT "project_team_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "teams"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "task_assignments" ADD CONSTRAINT "task_assignments_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "tasks"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

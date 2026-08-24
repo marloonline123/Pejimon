@@ -2,7 +2,12 @@ import z from "zod";
 declare const taskSchema: z.ZodObject<{
     name: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
-    status: z.ZodString;
+    status: z.ZodEnum<{
+        ToDo: 'ToDo';
+        WorkInProgress: 'WorkInProgress';
+        UnderReview: 'UnderReview';
+        Completed: 'Completed';
+    }>;
     priority: z.ZodString;
     tags: z.ZodOptional<z.ZodString>;
     startDate: z.ZodCoercedDate<unknown>;

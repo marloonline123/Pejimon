@@ -12,7 +12,7 @@ export const validate = (schema) => {
                 res.status(400).json({
                     success: false,
                     message: "Validation failed",
-                    errors: error.message
+                    errors: error.flatten().fieldErrors,
                 });
                 return; // Ensure the request doesn't proceed to the controller
             }

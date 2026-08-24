@@ -1,6 +1,7 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { SidebarReducer } from "./slices/sidebar";
 import themeReducer from "./slices/theme";
+import { api } from "./api";
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
 import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 
@@ -23,11 +24,13 @@ const storage = typeof window !== "undefined" ? createWebStorage("local") : crea
 const rootReducer = combineReducers({
   sidebar: SidebarReducer,
   theme: themeReducer,
+  [api.reducerPath]: api.reducer,
 });
 
 const persistConfig = {
   key: "root",
   storage,
+  blacklist: [api.reducerPath],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -39,7 +42,7 @@ const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }),
+    }).concat(api.middleware),
 });
 
 export const persistor = persistStore(store);

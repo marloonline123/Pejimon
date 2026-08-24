@@ -2,29 +2,62 @@ import type { Request, Response } from "express";
 import prisma from "../prismaClient.js";
 import type { TaskSchema } from "../schemas/taskSchema.js";
 
-export const index = async (req: Request<{}, {}, {projectId: string|undefined|null}>, res: Response): Promise<void> => {
+export const index = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { projectSlug } = req.query;
-        const project = await prisma.project.findFirst({
-            where: {
-                slug: projectSlug
-            },
-            include: {
-                tasks: true
+        const projectSlug = req.query.projectSlug as string | undefined;
+        const search = req.query.search as string | undefined;
+        const status = req.query.status as string | undefined;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const skip = (page - 1) * limit;
+
+        let projectId: number | undefined = undefined;
+        if (projectSlug) {
+            const project = await prisma.project.findFirst({
+                where: { slug: projectSlug },
+                select: { id: true }
+            });
+            if (project) {
+                projectId = project.id;
+            } else {
+                res.status(404).json({ success: false, message: "Project not found" });
+                return;
+            }
+        }
+
+        const where: any = {};
+        if (projectId) where.projectId = projectId;
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: "insensitive" } },
+                { description: { contains: search, mode: "insensitive" } },
+            ];
+        }
+        if (status && status !== "All") {
+            where.status = status;
+        }
+
+        const [tasks, total] = await Promise.all([
+            prisma.task.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.task.count({ where })
+        ]);
+
+        res.status(200).json({
+            success: true,
+            message: "Tasks fetched successfully",
+            data: tasks,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
             }
         });
-
-        if(project){
-            res.status(200).json({
-                success: true,
-                message: "Tasks fetched successfully",
-                data: project.tasks
-            })
-        }
-        res.status(404).json({
-            success: false,
-            message: "Project not found",
-        })
 
     } catch (error) {
         console.error("Prisma Error:", error);

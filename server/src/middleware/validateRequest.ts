@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import  {type ZodSchema, ZodError } from "zod";
+import { type ZodSchema, ZodError } from "zod";
 
 export const validate = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -13,7 +13,7 @@ export const validate = (schema: ZodSchema) => {
         res.status(400).json({
           success: false,
           message: "Validation failed",
-          errors: error.message
+          errors: error.flatten().fieldErrors,
         });
         return; // Ensure the request doesn't proceed to the controller
       }

@@ -1,20 +1,20 @@
 [
   {
-    "id": 1,
     "name": "Website Redesign",
     "slug": "website-redesign",
-    "status": "active",
+    "status": "WorkInProgress",
     "description": "Redesigning the company website for better UX",
     "startDate": "2026-09-01T00:00:00Z",
-    "endDate": "2026-12-31T00:00:00Z"
+    "endDate": "2026-12-31T00:00:00Z",
+    "userId": 1
   },
   {
-    "id": 2,
     "name": "Mobile App V2",
     "slug": "mobile-app-v2",
-    "status": "active",
+    "status": "WorkInProgress",
     "description": "Building the second version of our mobile application",
     "startDate": "2026-10-01T00:00:00Z",
-    "endDate": "2027-03-31T00:00:00Z"
+    "endDate": "2027-03-31T00:00:00Z",
+    "userId": 1
   }
 ]
