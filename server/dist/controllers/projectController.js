@@ -1,8 +1,8 @@
 import prisma from "../prismaClient.js";
 export const index = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
         const search = req.query.search;
         const status = req.query.status;
         const skip = (page - 1) * limit;
@@ -44,7 +44,7 @@ export const index = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Internal server error",
-            error: error,
+            error: String(error),
         });
     }
 };
@@ -178,13 +178,6 @@ export const destroy = async (req, res) => {
         const project = await prisma.project.delete({
             where: {
                 slug: slug,
-            },
-            include: {
-                tasks: {
-                    include: {
-                        taskAssignments: true,
-                    },
-                },
             },
         });
         res.status(200).json({

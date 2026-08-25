@@ -3,7 +3,7 @@ import { Status } from "@prisma/client";
 const taskSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters long"),
     description: z.string().optional(),
-    status: z.enum(Status),
+    status: z.nativeEnum(Status), // Using nativeEnum as done in projectSchema
     priority: z.string(),
     tags: z.string().optional(),
     startDate: z.coerce.date(),
@@ -12,6 +12,13 @@ const taskSchema = z.object({
     projectId: z.number().int(),
     authorId: z.number().int(),
     assignedUserId: z.number().int(),
+});
+export const taskQuerySchema = z.object({
+    projectSlug: z.string().optional(),
+    search: z.string().optional(),
+    status: z.string().optional(),
+    page: z.coerce.number().min(1).optional(),
+    limit: z.coerce.number().min(1).optional(),
 });
 export default taskSchema;
 //# sourceMappingURL=taskSchema.js.map

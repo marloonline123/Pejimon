@@ -4,8 +4,8 @@ export const index = async (req, res) => {
         const projectSlug = req.query.projectSlug;
         const search = req.query.search;
         const status = req.query.status;
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
         const skip = (page - 1) * limit;
         let projectId = undefined;
         if (projectSlug) {
@@ -128,10 +128,10 @@ export const update = async (req, res) => {
             },
             data: {
                 name: req.body.name,
-                description: req.body.description,
+                description: req.body.description ?? null,
                 status: req.body.status,
                 priority: req.body.priority,
-                tags: req.body.tags,
+                tags: req.body.tags ?? null,
                 startDate: req.body.startDate,
                 dueDate: req.body.dueDate,
                 points: req.body.points,

@@ -1,4 +1,4 @@
-import { ZodError } from "zod";
+import z, { ZodError } from "zod";
 export const validate = (schema) => {
     return (req, res, next) => {
         try {
@@ -15,6 +15,29 @@ export const validate = (schema) => {
                     errors: error.flatten().fieldErrors,
                 });
                 return; // Ensure the request doesn't proceed to the controller
+            }
+            next(error);
+        }
+    };
+};
+export const validateQuery = (schema) => {
+    return (req, res, next) => {
+        try {
+            const parsed = schema.parse(req.query);
+            for (const key of Object.keys(req.query)) {
+                delete req.query[key];
+            }
+            Object.assign(req.query, parsed);
+            next();
+        }
+        catch (error) {
+            if (error instanceof ZodError) {
+                res.status(400).json({
+                    success: false,
+                    message: "Query validation failed",
+                    errors: z.treeifyError(error),
+                });
+                return;
             }
             next(error);
         }

@@ -1,13 +1,19 @@
 import type { Request, Response } from "express";
 import prisma from "../prismaClient.js";
-import type { ProjectSchema } from "../schemas/projectSchema.js";
+import type {
+  ProjectSchema,
+  ProjectQuerySchema,
+} from "../schemas/projectSchema.js";
 
-export const index = async (req: Request, res: Response): Promise<void> => {
+export const index = async (
+  req: Request<{}, {}, {}, ProjectQuerySchema>,
+  res: Response,
+): Promise<void> => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const search = req.query.search as string | undefined;
-    const status = req.query.status as any | undefined;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const search = req.query.search;
+    const status = req.query.status;
 
     const skip = (page - 1) * limit;
 
@@ -50,7 +56,7 @@ export const index = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: error,
+      error: String(error),
     });
   }
 };
@@ -189,13 +195,6 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
     const project = await prisma.project.delete({
       where: {
         slug: slug,
-      },
-      include: {
-        tasks: {
-          include: {
-            taskAssignments: true,
-          },
-        },
       },
     });
     res.status(200).json({

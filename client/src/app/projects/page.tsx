@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ProjectFilters } from "@/components/projects/ProjectFilters";
 import { ProjectListEmptyState } from "@/components/projects/ProjectListEmptyState";
@@ -18,10 +19,14 @@ import {
 import { Project } from "@/types";
 
 export default function ProjectsPage() {
-  const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "All");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState<Project | undefined>(
@@ -32,14 +37,44 @@ export default function ProjectsPage() {
   const [updateProject, { isLoading: isUpdating }] = useUpdateProjectMutation();
   const [deleteProject] = useDeleteProjectMutation();
 
+  // Sync state to URL whenever it changes
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (debouncedSearch) {
+      params.set("search", debouncedSearch);
+    } else {
+      params.delete("search");
+    }
+
+    if (statusFilter !== "All") {
+      params.set("status", statusFilter);
+    } else {
+      params.delete("status");
+    }
+
+    if (page > 1) {
+      params.set("page", page.toString());
+    } else {
+      params.delete("page");
+    }
+
+    const newQueryString = params.toString();
+    if (newQueryString !== searchParams.toString()) {
+      router.replace(`${pathname}?${newQueryString}`);
+    }
+  }, [debouncedSearch, statusFilter, page, pathname, router, searchParams]);
+
   // Debounce search term to prevent rapid API calls
-  React.useEffect(() => {
+  useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-      setPage(1); // Reset to page 1 on new search
+      if (searchTerm !== debouncedSearch) {
+        setPage(1); // Reset to page 1 on new search
+      }
     }, 500);
     return () => clearTimeout(handler);
-  }, [searchTerm]);
+  }, [searchTerm, debouncedSearch]);
 
   const {
     data: projectsResponse,

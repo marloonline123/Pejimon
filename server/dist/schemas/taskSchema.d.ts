@@ -17,6 +17,14 @@ declare const taskSchema: z.ZodObject<{
     authorId: z.ZodNumber;
     assignedUserId: z.ZodNumber;
 }, z.core.$strip>;
+export declare const taskQuerySchema: z.ZodObject<{
+    projectSlug: z.ZodOptional<z.ZodString>;
+    search: z.ZodOptional<z.ZodString>;
+    status: z.ZodOptional<z.ZodString>;
+    page: z.ZodOptional<z.ZodCoercedNumber<unknown>>;
+    limit: z.ZodOptional<z.ZodCoercedNumber<unknown>>;
+}, z.core.$strip>;
 export default taskSchema;
 export type TaskSchema = z.infer<typeof taskSchema>;
+export type TaskQuerySchema = z.infer<typeof taskQuerySchema>;
 //# sourceMappingURL=taskSchema.d.ts.map

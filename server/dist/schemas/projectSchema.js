@@ -10,5 +10,11 @@ const projectSchema = z.object({
     endDate: z.coerce.date(),
     teamIds: z.array(z.number()).optional(),
 });
+export const projectQuerySchema = z.object({
+    search: z.string().optional(),
+    status: z.string().optional(),
+    page: z.coerce.number().min(1).optional(),
+    limit: z.coerce.number().min(1).optional(),
+});
 export default projectSchema;
 //# sourceMappingURL=projectSchema.js.map

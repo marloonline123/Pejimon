@@ -1,8 +1,8 @@
 import prisma from "../prismaClient.js";
 export const index = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 20;
         const search = req.query.search;
         const skip = (page - 1) * limit;
         const where = {};
@@ -52,7 +52,7 @@ export const store = async (req, res) => {
         const team = await prisma.team.create({
             data: {
                 name: req.body.name,
-                description: req.body.description,
+                description: req.body.description ?? null,
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
                 productOwnerUserId: req.body.productOwnerUserId,
                 projectManagerUserId: req.body.projectManagerUserId,
@@ -138,7 +138,7 @@ export const update = async (req, res) => {
             },
             data: {
                 name: req.body.name,
-                description: req.body.description,
+                description: req.body.description ?? null,
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
                 productOwnerUserId: req.body.productOwnerUserId,
                 projectManagerUserId: req.body.projectManagerUserId,

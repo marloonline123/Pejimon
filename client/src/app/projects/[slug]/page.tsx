@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   useGetProjectBySlugQuery,
   useGetTasksQuery,
@@ -49,6 +49,9 @@ const statusColors: Record<string, string> = {
 export default function SingleProjectPage() {
   const params = useParams();
   const slug = params.slug as string;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   // Project Data
   const {
@@ -61,11 +64,11 @@ export default function SingleProjectPage() {
     : projectResponse?.data;
 
   // Task state
-  const [activeTab, setActiveTab] = useState("board");
-  const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [activeTab, setActiveTab] = useState(searchParams.get("view") || "board");
+  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "All");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | undefined>(undefined);
@@ -75,14 +78,50 @@ export default function SingleProjectPage() {
   const [updateTask, { isLoading: isUpdating }] = useUpdateTaskMutation();
   const [deleteTask] = useDeleteTaskMutation();
 
+  // Sync state to URL whenever it changes
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (debouncedSearch) {
+      params.set("search", debouncedSearch);
+    } else {
+      params.delete("search");
+    }
+
+    if (statusFilter !== "All") {
+      params.set("status", statusFilter);
+    } else {
+      params.delete("status");
+    }
+
+    if (page > 1) {
+      params.set("page", page.toString());
+    } else {
+      params.delete("page");
+    }
+
+    if (activeTab !== "board") {
+      params.set("view", activeTab);
+    } else {
+      params.delete("view");
+    }
+
+    const newQueryString = params.toString();
+    if (newQueryString !== searchParams.toString()) {
+      router.replace(`${pathname}?${newQueryString}`);
+    }
+  }, [debouncedSearch, statusFilter, page, activeTab, pathname, router, searchParams]);
+
   // Debounce search term to prevent rapid API calls
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-      setPage(1); // Reset to page 1 on new search
+      if (searchTerm !== debouncedSearch) {
+        setPage(1); // Reset to page 1 on new search
+      }
     }, 500);
     return () => clearTimeout(handler);
-  }, [searchTerm]);
+  }, [searchTerm, debouncedSearch]);
 
   // Tasks Query
   const { data: tasksResponse, isLoading: isTasksLoading } = useGetTasksQuery(
