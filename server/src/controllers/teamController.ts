@@ -22,8 +22,7 @@ export const index = async (
             prisma.team.findMany({
                 where,
                 include: {
-                    productOwner: true,
-                    projectManager: true,
+                    teamManager: true,
                     teamUsers: {
                         include: {
                             user: true
@@ -67,8 +66,7 @@ export const store = async (
                 name: req.body.name,
                 description: req.body.description ?? null,
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-                productOwnerUserId: req.body.productOwnerUserId,
-                projectManagerUserId: req.body.projectManagerUserId,
+                teamManagerId: req.body.teamManagerId,
                 ...(req.body.userIds &&
                     req.body.userIds.length > 0 && {
                     teamUsers: {
@@ -79,8 +77,7 @@ export const store = async (
                 }),
             },
             include: {
-                productOwner: true,
-                projectManager: true,
+                teamManager: true,
                 teamUsers: {
                     include: { user: true }
                 }
@@ -111,8 +108,7 @@ export const show = async (req: Request, res: Response): Promise<void> => {
                 slug: slug,
             },
             include: {
-                productOwner: true,
-                projectManager: true,
+                teamManager: true,
                 teamUsers: {
                     include: { user: true }
                 },
@@ -155,8 +151,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
                 name: req.body.name,
                 description: req.body.description ?? null,
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-                productOwnerUserId: req.body.productOwnerUserId,
-                projectManagerUserId: req.body.projectManagerUserId,
+                teamManagerId: req.body.teamManagerId,
                 ...(req.body.userIds && {
                     teamUsers: {
                         create: req.body.userIds.map((userId: number) => ({
@@ -166,8 +161,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
                 }),
             },
             include: {
-                productOwner: true,
-                projectManager: true,
+                teamManager: true,
                 teamUsers: {
                     include: { user: true }
                 }

@@ -35,8 +35,7 @@ CREATE TABLE "teams" (
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "description" TEXT,
-    "productOwnerUserId" INTEGER NOT NULL,
-    "projectManagerUserId" INTEGER NOT NULL,
+    "teamManagerId" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "teams_pkey" PRIMARY KEY ("id")
@@ -133,10 +132,7 @@ CREATE UNIQUE INDEX "tasks_slug_key" ON "tasks"("slug");
 ALTER TABLE "projects" ADD CONSTRAINT "projects_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "teams" ADD CONSTRAINT "teams_productOwnerUserId_fkey" FOREIGN KEY ("productOwnerUserId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "teams" ADD CONSTRAINT "teams_projectManagerUserId_fkey" FOREIGN KEY ("projectManagerUserId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "teams" ADD CONSTRAINT "teams_teamManagerId_fkey" FOREIGN KEY ("teamManagerId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "team_user" ADD CONSTRAINT "team_user_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

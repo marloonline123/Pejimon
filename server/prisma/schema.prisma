@@ -26,8 +26,7 @@ model User {
   createdAt          DateTime @default(now()) @map("created_at")
 
   teamUsers       TeamUser[]
-  ownedTeams      Team[]           @relation("TeamProductOwner")
-  managedTeams    Team[]           @relation("TeamProjectManager")
+  managedTeams    Team[]           @relation("TeamManager")
   tasks           Task[]           @relation("TaskAuthor")
   assignedTasks   Task[]           @relation("TaskAssignee")
   taskAssignments TaskAssignment[]
@@ -61,12 +60,10 @@ model Team {
   name                 String
   slug                 String   @unique
   description          String?
-  productOwnerUserId   Int
-  projectManagerUserId Int
+  teamManagerId   Int
   createdAt            DateTime @default(now()) @map("created_at")
 
-  productOwner   User @relation("TeamProductOwner", fields: [productOwnerUserId], references: [id], onDelete: Cascade)
-  projectManager User @relation("TeamProjectManager", fields: [projectManagerUserId], references: [id], onDelete: Cascade)
+  teamManager   User @relation("TeamManager", fields: [teamManagerId], references: [id], onDelete: Cascade)
 
   teamUsers    TeamUser[]
   projectTeams ProjectTeam[]

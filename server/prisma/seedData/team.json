@@ -3,14 +3,12 @@
     "name": "Frontend Team",
     "slug": "frontend-team",
     "description": "Responsible for the UI/UX",
-    "productOwnerUserId": 1,
-    "projectManagerUserId": 2
+    "teamManagerId": 1
   },
   {
     "name": "Backend Team",
     "slug": "backend-team",
     "description": "Responsible for the server and database",
-    "productOwnerUserId": 1,
-    "projectManagerUserId": 3
+    "teamManagerId": 2
   }
 ]

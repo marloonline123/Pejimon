@@ -25,8 +25,7 @@ export interface Team {
     name: string;
     slug: string;
     description?: string;
-    productOwnerUserId: number;
-    projectManagerUserId: number;
+    teamManagerId: number;
     createdAt: string;
 }
 

@@ -22,6 +22,7 @@ interface DataFiltersProps {
   statusOptions?: FilterOption[];
   searchPlaceholder?: string;
   statusPlaceholder?: string;
+  showStatusFilter?: boolean;
 }
 
 export function DataFilters({
@@ -38,6 +39,7 @@ export function DataFilters({
   ],
   searchPlaceholder = "Search...",
   statusPlaceholder = "Filter by status",
+  showStatusFilter = true,
 }: DataFiltersProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -50,18 +52,20 @@ export function DataFilters({
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
-      <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-        <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder={statusPlaceholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {statusOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {showStatusFilter && (
+        <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder={statusPlaceholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {statusOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 }

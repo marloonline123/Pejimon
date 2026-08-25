@@ -23,7 +23,7 @@ import { useGetProjectsQuery } from "@/state/api";
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Projects", href: "/projects", icon: Briefcase },
-  { name: "Team", href: "/team", icon: Users },
+  { name: "Team", href: "/teams", icon: Users },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

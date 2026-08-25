@@ -6,7 +6,7 @@ import { baseQueryWithToast } from "./base-query";
 export const api = createApi({
   baseQuery: baseQueryWithToast,
   reducerPath: "api",
-  tagTypes: ["Project", "Projects"],
+  tagTypes: ["Project", "Projects", "Team", "Teams"],
   endpoints: (builder) => ({
     getProjects: builder.query<
       ApiResponse<Project[]>,
@@ -126,6 +126,40 @@ export const api = createApi({
         }
         return url;
       },
+      providesTags: ["Teams"],
+    }),
+    getTeamBySlug: builder.query<ApiResponse<Team>, string>({
+      query: (teamSlug: string) => `/teams/${teamSlug}`,
+      providesTags: ["Teams"],
+    }),
+    createTeam: builder.mutation<ApiResponse<Team>, Partial<Team>>({
+      query: (team: Partial<Team>) => ({
+        url: `/teams`,
+        method: "POST",
+        body: team,
+      }),
+      invalidatesTags: ["Teams"],
+    }),
+    updateTeam: builder.mutation<
+      ApiResponse<Team>,
+      { slug: string; team: Partial<Team> }
+    >({
+      query: ({ slug, team }) => ({
+        url: `/teams/${slug}`,
+        method: "PUT",
+        body: team,
+      }),
+      invalidatesTags: ["Teams"],
+    }),
+    deleteTeam: builder.mutation<ApiResponse<Team>, string>({
+      query: (slug: string) => ({
+        url: `/teams/${slug}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Teams"],
+    }),
+    getUsers: builder.query<ApiResponse<any[]>, void>({
+      query: () => `/users`,
     }),
   }),
 });
@@ -142,4 +176,9 @@ export const {
   useUpdateTaskMutation,
   useDeleteTaskMutation,
   useGetTeamsQuery,
+  useGetTeamBySlugQuery,
+  useCreateTeamMutation,
+  useUpdateTeamMutation,
+  useDeleteTeamMutation,
+  useGetUsersQuery,
 } = api;

@@ -13,8 +13,7 @@ export const index = async (req, res) => {
             prisma.team.findMany({
                 where,
                 include: {
-                    productOwner: true,
-                    projectManager: true,
+                    teamManager: true,
                     teamUsers: {
                         include: {
                             user: true
@@ -54,8 +53,7 @@ export const store = async (req, res) => {
                 name: req.body.name,
                 description: req.body.description ?? null,
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-                productOwnerUserId: req.body.productOwnerUserId,
-                projectManagerUserId: req.body.projectManagerUserId,
+                teamManagerId: req.body.teamManagerId,
                 ...(req.body.userIds &&
                     req.body.userIds.length > 0 && {
                     teamUsers: {
@@ -66,8 +64,7 @@ export const store = async (req, res) => {
                 }),
             },
             include: {
-                productOwner: true,
-                projectManager: true,
+                teamManager: true,
                 teamUsers: {
                     include: { user: true }
                 }
@@ -98,8 +95,7 @@ export const show = async (req, res) => {
                 slug: slug,
             },
             include: {
-                productOwner: true,
-                projectManager: true,
+                teamManager: true,
                 teamUsers: {
                     include: { user: true }
                 },
@@ -140,8 +136,7 @@ export const update = async (req, res) => {
                 name: req.body.name,
                 description: req.body.description ?? null,
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-                productOwnerUserId: req.body.productOwnerUserId,
-                projectManagerUserId: req.body.projectManagerUserId,
+                teamManagerId: req.body.teamManagerId,
                 ...(req.body.userIds && {
                     teamUsers: {
                         create: req.body.userIds.map((userId) => ({
@@ -151,8 +146,7 @@ export const update = async (req, res) => {
                 }),
             },
             include: {
-                productOwner: true,
-                projectManager: true,
+                teamManager: true,
                 teamUsers: {
                     include: { user: true }
                 }
