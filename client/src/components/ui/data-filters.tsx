@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -11,25 +9,42 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface ProjectFiltersProps {
+export interface FilterOption {
+  value: string;
+  label: string;
+}
+
+interface DataFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
+  statusOptions?: FilterOption[];
+  searchPlaceholder?: string;
+  statusPlaceholder?: string;
 }
 
-export function ProjectFilters({
+export function DataFilters({
   searchTerm,
   onSearchChange,
   statusFilter,
   onStatusFilterChange,
-}: ProjectFiltersProps) {
+  statusOptions = [
+    { value: "All", label: "All Statuses" },
+    { value: "ToDo", label: "To Do" },
+    { value: "WorkInProgress", label: "Work In Progress" },
+    { value: "UnderReview", label: "Under Review" },
+    { value: "Completed", label: "Completed" },
+  ],
+  searchPlaceholder = "Search...",
+  statusPlaceholder = "Filter by status",
+}: DataFiltersProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
       <div className="relative flex-1 max-w-sm">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search projects..."
+          placeholder={searchPlaceholder}
           className="pl-8"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -37,14 +52,14 @@ export function ProjectFilters({
       </div>
       <Select value={statusFilter} onValueChange={onStatusFilterChange}>
         <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder="Filter by status" />
+          <SelectValue placeholder={statusPlaceholder} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="All">All Statuses</SelectItem>
-          <SelectItem value="ToDo">To Do</SelectItem>
-          <SelectItem value="WorkInProgress">Work In Progress</SelectItem>
-          <SelectItem value="UnderReview">Under Review</SelectItem>
-          <SelectItem value="Completed">Completed</SelectItem>
+          {statusOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

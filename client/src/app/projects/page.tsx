@@ -4,12 +4,14 @@ import React, { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ProjectFilters } from "@/components/projects/ProjectFilters";
+import { DataFilters } from "@/components/ui/data-filters";
 import { ProjectListEmptyState } from "@/components/projects/ProjectListEmptyState";
 import { ProjectListLoadingState } from "@/components/projects/ProjectListLoadingState";
 import { ProjectModal } from "@/components/projects/ProjectModal";
 import { ProjectFormValues } from "@/components/projects/ProjectForm";
 import { ProjectTableView } from "@/components/projects/ProjectViews";
+import { Pagination } from "@/components/ui/pagination";
+import { useFilters } from "@/hooks/useFilters";
 import {
   useGetProjectsQuery,
   useCreateProjectMutation,
@@ -19,14 +21,15 @@ import {
 import { Project } from "@/types";
 
 export default function ProjectsPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-
-  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
-  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "All");
-  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+  const {
+    page,
+    setPage,
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    debouncedSearch,
+  } = useFilters();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState<Project | undefined>(
@@ -37,44 +40,7 @@ export default function ProjectsPage() {
   const [updateProject, { isLoading: isUpdating }] = useUpdateProjectMutation();
   const [deleteProject] = useDeleteProjectMutation();
 
-  // Sync state to URL whenever it changes
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    
-    if (debouncedSearch) {
-      params.set("search", debouncedSearch);
-    } else {
-      params.delete("search");
-    }
 
-    if (statusFilter !== "All") {
-      params.set("status", statusFilter);
-    } else {
-      params.delete("status");
-    }
-
-    if (page > 1) {
-      params.set("page", page.toString());
-    } else {
-      params.delete("page");
-    }
-
-    const newQueryString = params.toString();
-    if (newQueryString !== searchParams.toString()) {
-      router.replace(`${pathname}?${newQueryString}`);
-    }
-  }, [debouncedSearch, statusFilter, page, pathname, router, searchParams]);
-
-  // Debounce search term to prevent rapid API calls
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      if (searchTerm !== debouncedSearch) {
-        setPage(1); // Reset to page 1 on new search
-      }
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [searchTerm, debouncedSearch]);
 
   const {
     data: projectsResponse,
@@ -128,14 +94,18 @@ export default function ProjectsPage() {
         </Button>
       </div>
 
-      <ProjectFilters
+      <DataFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         statusFilter={statusFilter}
-        onStatusFilterChange={(val) => {
-          setStatusFilter(val);
-          setPage(1);
-        }}
+        onStatusFilterChange={setStatusFilter}
+        statusOptions={[
+          { value: "All", label: "All Statuses" },
+          { value: "ToDo", label: "To Do" },
+          { value: "WorkInProgress", label: "Work In Progress" },
+          { value: "UnderReview", label: "Under Review" },
+          { value: "Completed", label: "Completed" },
+        ]}
       />
 
       <div className="flex justify-between items-center mb-6">
@@ -157,34 +127,14 @@ export default function ProjectsPage() {
             onDelete={handleDelete}
           />
 
-          {meta && meta.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6">
-              <p className="text-sm text-muted-foreground">
-                Showing {(meta.page - 1) * meta.limit + 1} to{" "}
-                {Math.min(meta.page * meta.limit, meta.total)} of {meta.total}{" "}
-                results
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setPage((p) => Math.min(meta.totalPages, p + 1))
-                  }
-                  disabled={page === meta.totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+          {meta && (
+            <Pagination
+              page={page}
+              limit={meta.limit}
+              total={meta.total}
+              totalPages={meta.totalPages}
+              onPageChange={setPage}
+            />
           )}
         </>
       )}
