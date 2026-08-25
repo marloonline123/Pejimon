@@ -6,7 +6,7 @@ import { baseQueryWithToast } from "./base-query";
 export const api = createApi({
   baseQuery: baseQueryWithToast,
   reducerPath: "api",
-  tagTypes: ["Project", "Projects", "Team", "Teams"],
+  tagTypes: ["Project", "Projects", "Team", "Teams", "Tasks"],
   endpoints: (builder) => ({
     getProjects: builder.query<
       ApiResponse<Project[]>,
@@ -83,9 +83,11 @@ export const api = createApi({
         }
         return url;
       },
+      providesTags: ["Tasks"],
     }),
     getTaskBySlug: builder.query<ApiResponse<Task>, string>({
       query: (taskSlug: string) => `/tasks?slug=${taskSlug}`,
+      providesTags: ["Tasks"],
     }),
     createTask: builder.mutation<ApiResponse<Task>, Partial<Task>>({
       query: (task: Partial<Task>) => ({
@@ -93,6 +95,7 @@ export const api = createApi({
         method: "POST",
         body: task,
       }),
+      invalidatesTags: ["Tasks"],
     }),
     updateTask: builder.mutation<
       ApiResponse<Task>,
@@ -103,12 +106,14 @@ export const api = createApi({
         method: "PUT",
         body: task,
       }),
+      invalidatesTags: ["Tasks"],
     }),
     deleteTask: builder.mutation<ApiResponse<Task>, string>({
       query: (slug: string) => ({
         url: `/tasks/${slug}`,
         method: "DELETE",
       }),
+      invalidatesTags: ["Tasks"],
     }),
     getTeams: builder.query<
       ApiResponse<Team[]>,

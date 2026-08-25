@@ -11,7 +11,7 @@ export const index = async (req, res) => {
         if (projectSlug) {
             const project = await prisma.project.findFirst({
                 where: { slug: projectSlug },
-                select: { id: true }
+                select: { id: true },
             });
             if (project) {
                 projectId = project.id;
@@ -38,28 +38,26 @@ export const index = async (req, res) => {
                 where,
                 skip,
                 take: limit,
-                orderBy: { createdAt: 'desc' }
+                orderBy: { createdAt: "desc" },
             }),
-            prisma.task.count({ where })
+            prisma.task.count({ where }),
         ]);
         res.status(200).json({
             success: true,
-            message: "Tasks fetched successfully",
             data: tasks,
             meta: {
                 total,
                 page,
                 limit,
-                totalPages: Math.ceil(total / limit)
-            }
+                totalPages: Math.ceil(total / limit),
+            },
         });
     }
     catch (error) {
         console.error("Prisma Error:", error);
         res.status(500).json({
             success: false,
-            message: "Internal server error",
-            error: error
+            error: error,
         });
     }
 };
@@ -79,20 +77,21 @@ export const store = async (req, res) => {
                 authorId: Number(req.body.authorId),
                 assignedUserId: Number(req.body.assignedUserId),
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-            }
+            },
         });
         res.status(201).json({
             success: true,
-            message: "Task created successfully",
-            data: task
+            flash: {
+                success: "Task Created Successfuly",
+            },
+            data: task,
         });
     }
     catch (error) {
         console.error("Prisma Error:", error);
         res.status(500).json({
             success: false,
-            message: "Internal server error",
-            error: error
+            error: error,
         });
     }
 };
@@ -101,21 +100,20 @@ export const show = async (req, res) => {
         const slug = req.params.slug;
         const task = await prisma.task.findFirst({
             where: {
-                slug: slug
+                slug: slug,
             },
         });
         res.status(200).json({
             success: true,
             message: "Task fetched successfully",
-            data: task
+            data: task,
         });
     }
     catch (error) {
         console.error("Prisma Error:", error);
         res.status(500).json({
             success: false,
-            message: "Internal server error",
-            error: error
+            error: error,
         });
     }
 };
@@ -124,7 +122,7 @@ export const update = async (req, res) => {
         const slug = req.params.slug;
         const task = await prisma.task.update({
             where: {
-                slug: slug
+                slug: slug,
             },
             data: {
                 name: req.body.name,
@@ -139,20 +137,21 @@ export const update = async (req, res) => {
                 authorId: req.body.authorId,
                 assignedUserId: req.body.assignedUserId,
                 slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-            }
+            },
         });
         res.status(200).json({
             success: true,
-            message: "Task updated successfully",
-            data: task
+            flash: {
+                success: "Task Updated Successfuly",
+            },
+            data: task,
         });
     }
     catch (error) {
         console.error("Prisma Error:", error);
         res.status(500).json({
             success: false,
-            message: "Internal server error",
-            error: error
+            error: error,
         });
     }
 };
@@ -161,26 +160,27 @@ export const destroy = async (req, res) => {
         const slug = req.params.slug;
         const task = await prisma.task.delete({
             where: {
-                slug: slug
+                slug: slug,
             },
             include: {
                 taskAssignments: true,
                 comments: true,
-                attachments: true
-            }
+                attachments: true,
+            },
         });
         res.status(200).json({
             success: true,
-            message: "Task deleted successfully",
-            data: task
+            flash: {
+                success: "Task Deleted Successfuly",
+            },
+            data: task,
         });
     }
     catch (error) {
         console.error("Prisma Error:", error);
         res.status(500).json({
             success: false,
-            message: "Internal server error",
-            error: error
+            error: error,
         });
     }
 };
