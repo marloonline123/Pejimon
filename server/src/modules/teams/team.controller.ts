@@ -1,49 +1,47 @@
 import type { Request, Response } from "express";
-import prisma from "../prismaClient.js";
+import prisma from "@/lib/prismaClient.js";
 import type {
-  ProjectSchema,
-  ProjectQuerySchema,
-} from "../schemas/projectSchema.js";
+  TeamSchema,
+  TeamQuerySchema,
+} from "@/modules/teams/team.schema.js";
 
 export const index = async (
-  req: Request<{}, {}, {}, ProjectQuerySchema>,
+  req: Request<{}, {}, {}, TeamQuerySchema>,
   res: Response,
 ): Promise<void> => {
   try {
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    const limit = Number(req.query.limit) || 20;
     const search = req.query.search;
-    const status = req.query.status;
 
     const skip = (page - 1) * limit;
 
     const where: any = {};
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-      ];
-    }
-    if (status && status !== "All") {
-      where.status = status;
+      where.name = { contains: search, mode: "insensitive" };
     }
 
-    const [projects, total] = await Promise.all([
-      prisma.project.findMany({
+    const [teams, total] = await Promise.all([
+      prisma.team.findMany({
         where,
         include: {
-          projectTeams: true,
+          teamManager: true,
+          teamUsers: {
+            include: {
+              user: true,
+            },
+          },
         },
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: { name: "asc" },
       }),
-      prisma.project.count({ where }),
+      prisma.team.count({ where }),
     ]);
 
     res.status(200).json({
       success: true,
-      data: projects,
+      data: teams,
       meta: {
         total,
         page,
@@ -56,44 +54,44 @@ export const index = async (
     res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: String(error),
+      error: error,
     });
   }
 };
 
 export const store = async (
-  req: Request<{}, {}, ProjectSchema>,
+  req: Request<{}, {}, TeamSchema>,
   res: Response,
 ): Promise<void> => {
   try {
-    const project = await prisma.project.create({
+    const team = await prisma.team.create({
       data: {
         name: req.body.name,
-        description: req.body.description,
-        status: req.body.status,
-        startDate: req.body.startDate,
-        endDate: req.body.endDate,
+        description: req.body.description ?? null,
         slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-        userId: 1, // TODO: Replace with authenticated user ID
-        ...(req.body.teamIds &&
-          req.body.teamIds.length > 0 && {
-            projectTeams: {
-              create: req.body.teamIds.map((teamId: number) => ({
-                team: { connect: { id: teamId } },
+        teamManagerId: req.body.teamManagerId,
+        ...(req.body.userIds &&
+          req.body.userIds.length > 0 && {
+            teamUsers: {
+              create: req.body.userIds.map((userId: number) => ({
+                user: { connect: { id: userId } },
               })),
             },
           }),
       },
       include: {
-        projectTeams: true,
+        teamManager: true,
+        teamUsers: {
+          include: { user: true },
+        },
       },
     });
     res.status(201).json({
       success: true,
       flash: {
-        success: "Project created successfully",
+        success: "Team created successfully",
       },
-      data: project,
+      data: team,
     });
   } catch (error) {
     console.error("Prisma Error:", error);
@@ -108,21 +106,23 @@ export const store = async (
 export const show = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
-    const project = await prisma.project.findFirst({
+    const team = await prisma.team.findFirst({
       where: {
         slug: slug,
       },
       include: {
+        teamManager: true,
+        teamUsers: {
+          include: { user: true },
+        },
         projectTeams: {
-          include: {
-            team: true,
-          },
+          include: { project: true },
         },
       },
     });
     res.status(200).json({
       success: true,
-      data: project,
+      data: team,
     });
   } catch (error) {
     console.error("Prisma Error:", error);
@@ -137,47 +137,45 @@ export const show = async (req: Request, res: Response): Promise<void> => {
 export const update = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
-    // If teamIds are provided, we first delete existing relations and then recreate them
-    if (req.body.teamIds !== undefined) {
-      await prisma.projectTeam.deleteMany({
+
+    if (req.body.userIds !== undefined) {
+      await prisma.teamUser.deleteMany({
         where: {
-          project: { slug: slug },
+          team: { slug: slug },
         },
       });
     }
 
-    const project = await prisma.project.update({
+    const team = await prisma.team.update({
       where: {
         slug: slug,
       },
       data: {
         name: req.body.name,
-        description: req.body.description,
-        status: req.body.status,
-        startDate: req.body.startDate,
-        endDate: req.body.endDate,
+        description: req.body.description ?? null,
         slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-        userId: 1, // TODO: Replace with authenticated user ID
-        ...(req.body.teamIds && {
-          projectTeams: {
-            create: req.body.teamIds.map((teamId: number) => ({
-              team: { connect: { id: teamId } },
+        teamManagerId: req.body.teamManagerId,
+        ...(req.body.userIds && {
+          teamUsers: {
+            create: req.body.userIds.map((userId: number) => ({
+              user: { connect: { id: userId } },
             })),
           },
         }),
       },
       include: {
-        projectTeams: {
-          include: { team: true },
+        teamManager: true,
+        teamUsers: {
+          include: { user: true },
         },
       },
     });
     res.status(200).json({
       success: true,
       flash: {
-        success: "Project updated successfully",
+        success: "Team updated successfully",
       },
-      data: project,
+      data: team,
     });
   } catch (error) {
     console.error("Prisma Error:", error);
@@ -192,7 +190,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
 export const destroy = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
-    const project = await prisma.project.delete({
+    const team = await prisma.team.delete({
       where: {
         slug: slug,
       },
@@ -200,9 +198,9 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       success: true,
       flash: {
-        success: "Project deleted successfully",
+        success: "Team deleted successfully",
       },
-      data: project,
+      data: team,
     });
   } catch (error) {
     console.error("Prisma Error:", error);

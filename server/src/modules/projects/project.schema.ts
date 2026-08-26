@@ -6,7 +6,7 @@ const projectSchema = z.object({
   description: z
     .string()
     .min(3, "Description must be at least 3 characters long"),
-  status: z.nativeEnum(Status),
+  status: z.enum(Status),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   teamIds: z.array(z.number()).optional(),

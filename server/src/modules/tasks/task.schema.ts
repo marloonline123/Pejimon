@@ -4,7 +4,7 @@ import { Status } from "@prisma/client";
 const taskSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters long"),
   description: z.string().optional(),
-  status: z.nativeEnum(Status), // Using nativeEnum as done in projectSchema
+  status: z.enum(Status),
   priority: z.string(),
   tags: z.string().optional(),
   startDate: z.coerce.date(),

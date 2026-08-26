@@ -1,7 +1,13 @@
 import { Router } from "express";
-import { index, show, store, update, destroy } from "../controllers/teamController.js";
-import { validate, validateQuery } from "../middleware/validateRequest.js";
-import teamSchema, { teamQuerySchema } from "../schemas/teamSchema.js";
+import {
+  index,
+  show,
+  store,
+  update,
+  destroy,
+} from "@/modules/teams/team.controller.js";
+import { validate, validateQuery } from "@/middleware/validateRequest.js";
+import teamSchema, { teamQuerySchema } from "@/modules/teams/team.schema.js";
 
 const router = Router();
 
