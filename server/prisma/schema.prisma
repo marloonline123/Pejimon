@@ -9,156 +9,785 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Status {
-  ToDo
-  WorkInProgress
-  UnderReview
-  Completed
-}
+// ============================================================
+// USERS
+// ============================================================
 
 model User {
-  id                 Int      @id @default(autoincrement())
+  id                 Int       @id @default(autoincrement())
   name               String
-  username           String   @unique
-  email              String   @unique
+  username           String    @unique
+  phoneNumber        String?   @unique @map("phone_number")
+  email              String    @unique
   password           String
-  profilePicturePath String?
-  createdAt          DateTime @default(now()) @map("created_at")
+  profilePicturePath String?   @map("profile_picture_path")
+  emailVerifiedAt    DateTime? @map("email_verified_at")
+  deletedAt          DateTime? @map("deleted_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
-  teamUsers       TeamUser[]
-  managedTeams    Team[]           @relation("TeamManager")
-  tasks           Task[]           @relation("TaskAuthor")
-  assignedTasks   Task[]           @relation("TaskAssignee")
-  taskAssignments TaskAssignment[]
-  comments        Comment[]
-  attachments     Attachment[]
-  projects        Project[]
+  // Relations
+  organizationMembers     OrganizationMember[]
+  organizationInvitations OrganizationInvitation[]
+  refreshTokens           RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  teamUsers               TeamUser[]
+  createdProjects         Project[]                @relation("ProjectCreator")
+  projectUsers            ProjectUser[]
+  authoredTasks           Task[]                   @relation("TaskAuthor")
+  taskAssignments         TaskAssignment[]         @relation("TaskAssignee")
+  taskAssignedBy          TaskAssignment[]         @relation("TaskAssigner")
+  createdMilestones       Milestone[]              @relation("MilestoneCreator")
+  comments                Comment[]
+  attachments             Attachment[]
+  timeEntries             TimeEntry[]
+  clients                 Client[]
+  createdConversations    Conversation[]           @relation("ConversationCreator")
+  conversationMembers     ConversationMember[]
+  messages                Message[]
+  notifications           Notification[]
+  activities              Activity[]
+  createdTemplates        ProjectTemplate[]
 
+  @@index([deletedAt])
   @@map("users")
 }
 
-model Project {
+// ============================================================
+// ORGANIZATIONS
+// ============================================================
+
+model Organization {
   id          Int       @id @default(autoincrement())
   name        String
   slug        String    @unique
   description String?
-  status      Status
-  startDate   DateTime?
-  endDate     DateTime?
+  logoPath    String?   @map("logo_path")
+  deletedAt   DateTime? @map("deleted_at")
   createdAt   DateTime  @default(now()) @map("created_at")
-  userId      Int
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tasks        Task[]
-  projectTeams ProjectTeam[]
+  // Relations
+  members           OrganizationMember[]
+  invitations       OrganizationInvitation[]
+  teams             Team[]
+  projects          Project[]
+  tasks             Task[]
+  taskDependencies  TaskDependency[]
+  milestones        Milestone[]
+  comments          Comment[]
+  attachments       Attachment[]
+  timeEntries       TimeEntry[]
+  clients           Client[]
+  clientInvitations ClientInvitation[]
+  conversations     Conversation[]
+  activities        Activity[]
+  projectTemplates  ProjectTemplate[]
 
-  @@map("projects")
+  @@index([deletedAt])
+  @@map("organizations")
 }
 
+// ============================================================
+// ORGANIZATION MEMBERS
+// ============================================================
+
+model OrganizationMember {
+  id             Int      @id @default(autoincrement())
+  organizationId Int      @map("organization_id")
+  userId         Int      @map("user_id")
+  role           String // OWNER, MEMBER
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@map("organization_members")
+}
+
+// ============================================================
+// ORGANIZATION INVITATIONS
+// ============================================================
+
+model OrganizationInvitation {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  email          String
+  tokenHash      String    @unique @map("token_hash")
+  invitedById    Int       @map("invited_by_id")
+  expiresAt      DateTime  @map("expires_at")
+  acceptedAt     DateTime? @map("accepted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy    User         @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, email])
+  @@index([tokenHash])
+  @@map("organization_invitations")
+}
+
+// ============================================================
+// REFRESH TOKENS
+// ============================================================
+
+model RefreshToken {
+  id         Int       @id @default(autoincrement())
+  userId     Int       @map("user_id")
+  tokenHash  String    @unique @map("token_hash")
+  deviceName String?   @map("device_name")
+  platform   String?
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  lastUsedAt DateTime? @map("last_used_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+// ============================================================
+// EMAIL VERIFICATION TOKENS
+// ============================================================
+
+model EmailVerificationToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("email_verification_tokens")
+}
+
+// ============================================================
+// PASSWORD RESET TOKENS
+// ============================================================
+
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("password_reset_tokens")
+}
+
+// ============================================================
+// TEAMS
+// ============================================================
+
 model Team {
-  id                   Int      @id @default(autoincrement())
-  name                 String
-  slug                 String   @unique
-  description          String?
-  teamManagerId   Int
-  createdAt            DateTime @default(now()) @map("created_at")
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  name           String
+  slug           String
+  description    String?
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  teamManager   User @relation("TeamManager", fields: [teamManagerId], references: [id], onDelete: Cascade)
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teamUsers     TeamUser[]
+  projectTeams  ProjectTeam[]
+  conversations Conversation[]
 
-  teamUsers    TeamUser[]
-  projectTeams ProjectTeam[]
-
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([deletedAt])
   @@map("teams")
 }
 
+// ============================================================
+// TEAM MEMBERS
+// ============================================================
+
 model TeamUser {
-  userId Int
-  teamId Int
+  userId    Int      @map("user_id")
+  teamId    Int      @map("team_id")
+  role      String // MANAGER, MEMBER
+  createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@id([userId, teamId])
+  @@index([userId])
+  @@index([teamId])
   @@map("team_user")
 }
 
-model Task {
-  id             Int      @id @default(autoincrement())
+// ============================================================
+// PROJECTS
+// ============================================================
+
+model Project {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
   name           String
-  slug           String   @unique
+  slug           String
   description    String?
-  status         Status
-  priority       String
-  tags           String?
-  startDate      DateTime
-  dueDate        DateTime
-  points         Int
-  projectId      Int
-  authorId       Int
-  assignedUserId Int
-  createdAt      DateTime @default(now()) @map("created_at")
+  startDate      DateTime? @map("start_date") @db.Date
+  endDate        DateTime? @map("end_date") @db.Date
+  status         String // PLANNING, ACTIVE, ON_HOLD, COMPLETED, ARCHIVED
+  createdById    Int       @map("created_by_id")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author          User             @relation("TaskAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  assignee        User             @relation("TaskAssignee", fields: [assignedUserId], references: [id], onDelete: Cascade)
-  taskAssignments TaskAssignment[]
-  comments        Comment[]
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       User             @relation("ProjectCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  tasks           Task[]
+  projectTeams    ProjectTeam[]
+  projectUsers    ProjectUser[]
+  milestones      Milestone[]
   attachments     Attachment[]
+  projectClients  ProjectClient[]
+  clientApprovals ClientApproval[]
+  conversations   Conversation[]
+  activities      Activity[]
 
-  @@map("tasks")
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([createdById])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("projects")
 }
 
+// ============================================================
+// PROJECT TEAMS
+// ============================================================
+
 model ProjectTeam {
-  projectId Int
-  teamId    Int
+  projectId Int @map("project_id")
+  teamId    Int @map("team_id")
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   team    Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@id([projectId, teamId])
+  @@index([projectId])
+  @@index([teamId])
   @@map("project_team")
 }
 
+// ============================================================
+// PROJECT MEMBERS
+// ============================================================
+
+model ProjectUser {
+  id        Int      @id @default(autoincrement())
+  projectId Int      @map("project_id")
+  userId    Int      @map("user_id")
+  role      String // MANAGER, MEMBER, VIEWER
+  createdAt DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_user")
+}
+
+// ============================================================
+// TASKS
+// ============================================================
+
+model Task {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  projectId      Int       @map("project_id")
+  milestoneId    Int?      @map("milestone_id")
+  name           String
+  slug           String
+  description    String?
+  status         String // TODO, IN_PROGRESS, UNDER_REVIEW, COMPLETED, CANCELLED
+  priority       String // LOW, MEDIUM, HIGH, URGENT
+  tags           String?
+  startDate      DateTime? @map("start_date") @db.Date
+  dueDate        DateTime? @map("due_date") @db.Date
+  points         Int?
+  estimatedHours Decimal?  @map("estimated_hours") @db.Decimal(10, 2)
+  authorId       Int       @map("author_id")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone       Milestone?       @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  author          User             @relation("TaskAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  taskAssignments TaskAssignment[]
+  dependencies    TaskDependency[] @relation("TaskDependencies")
+  dependents      TaskDependency[] @relation("TaskDependents")
+  comments        Comment[]
+  attachments     Attachment[]
+  timeEntries     TimeEntry[]
+  conversations   Conversation[]
+
+  @@unique([projectId, slug])
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([projectId, status])
+  @@index([projectId, dueDate])
+  @@index([deletedAt])
+  @@map("tasks")
+}
+
+// ============================================================
+// TASK ASSIGNMENTS
+// ============================================================
+
 model TaskAssignment {
-  id          Int      @id @default(autoincrement())
-  description String?
-  taskId      Int
-  userId      Int
-  parentId    Int?
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           Int      @id @default(autoincrement())
+  taskId       Int      @map("task_id")
+  userId       Int      @map("user_id")
+  description  String?
+  assignedById Int?     @map("assigned_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
 
-  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task       Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user       User  @relation("TaskAssignee", fields: [userId], references: [id], onDelete: Cascade)
+  assignedBy User? @relation("TaskAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
 
+  @@unique([taskId, userId])
+  @@index([taskId])
+  @@index([userId])
   @@map("task_assignments")
 }
 
+// ============================================================
+// TASK DEPENDENCIES
+// ============================================================
+
+model TaskDependency {
+  id              Int      @id @default(autoincrement())
+  organizationId  Int      @map("organization_id")
+  taskId          Int      @map("task_id")
+  dependsOnTaskId Int      @map("depends_on_task_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  task         Task         @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOn    Task         @relation("TaskDependents", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([taskId])
+  @@index([dependsOnTaskId])
+  @@map("task_dependencies")
+}
+
+// ============================================================
+// MILESTONES
+// ============================================================
+
+model Milestone {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  projectId      Int       @map("project_id")
+  name           String
+  description    String?
+  dueDate        DateTime? @map("due_date") @db.Date
+  status         String // OPEN, COMPLETED, CANCELLED
+  createdById    Int       @map("created_by_id")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("MilestoneCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  tasks        Task[]
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([projectId, dueDate])
+  @@index([deletedAt])
+  @@map("milestones")
+}
+
+// ============================================================
+// COMMENTS
+// ============================================================
+
 model Comment {
-  id        Int      @id @default(autoincrement())
-  body      String
-  taskId    Int
-  userId    Int
-  parentId  Int?
-  createdAt DateTime @default(now()) @map("created_at")
+  id             Int       @id @default(autoincrement())
+  body           String
+  organizationId Int       @map("organization_id")
+  taskId         Int       @map("task_id")
+  userId         Int       @map("user_id")
+  parentId       Int?      @map("parent_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
 
-  task    Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent  Comment?  @relation("CommentToComment", fields: [parentId], references: [id], onDelete: Cascade)
-  replies Comment[] @relation("CommentToComment")
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  task         Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Comment?     @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies      Comment[]    @relation("CommentReplies")
 
+  @@index([taskId, createdAt])
+  @@index([userId])
+  @@index([parentId])
+  @@index([deletedAt])
   @@map("comments")
 }
 
+// ============================================================
+// ATTACHMENTS
+// ============================================================
+
 model Attachment {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  name           String
+  path           String
+  mimeType       String?   @map("mime_type")
+  size           Int?
+  uploadedById   Int       @map("uploaded_by_id")
+  taskId         Int?      @map("task_id")
+  projectId      Int?      @map("project_id")
+  messageId      Int?      @map("message_id")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  task         Task?        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  message      Message?     @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  // NOTE: Exactly one of taskId, projectId, or messageId must be set.
+  // This constraint is enforced at the application level.
+
+  @@index([organizationId])
+  @@index([taskId])
+  @@index([projectId])
+  @@index([messageId])
+  @@index([deletedAt])
+  @@map("attachments")
+}
+
+// ============================================================
+// TIME ENTRIES
+// ============================================================
+
+model TimeEntry {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  taskId         Int       @map("task_id")
+  userId         Int       @map("user_id")
+  startedAt      DateTime  @map("started_at")
+  endedAt        DateTime? @map("ended_at")
+  durationHours  Decimal?  @map("duration_hours") @db.Decimal(10, 2)
+  description    String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  task         Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([taskId])
+  @@index([userId])
+  @@map("time_entries")
+}
+
+// ============================================================
+// CLIENTS
+// ============================================================
+
+model Client {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  userId         Int?      @map("user_id")
+  companyName    String?   @map("company_name")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  projectClients  ProjectClient[]
+  clientApprovals ClientApproval[]
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([deletedAt])
+  @@map("clients")
+}
+
+// ============================================================
+// PROJECT CLIENTS
+// ============================================================
+
+model ProjectClient {
   id        Int      @id @default(autoincrement())
-  name      String?
-  path      String?
-  taskId    Int
-  userId    Int
+  projectId Int      @map("project_id")
+  clientId  Int      @map("client_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  client  Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, clientId])
+  @@index([projectId])
+  @@index([clientId])
+  @@map("project_clients")
+}
+
+// ============================================================
+// CLIENT INVITATIONS
+// ============================================================
+
+model ClientInvitation {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  email          String
+  tokenHash      String    @unique @map("token_hash")
+  expiresAt      DateTime  @map("expires_at")
+  acceptedAt     DateTime? @map("accepted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([tokenHash])
+  @@map("client_invitations")
+}
+
+// ============================================================
+// CLIENT APPROVALS
+// ============================================================
+
+model ClientApproval {
+  id          Int       @id @default(autoincrement())
+  projectId   Int       @map("project_id")
+  clientId    Int       @map("client_id")
+  title       String
+  description String?
+  status      String // PENDING, APPROVED, CHANGES_REQUESTED
+  respondedAt DateTime? @map("responded_at")
+  response    String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  client  Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([clientId])
+  @@index([projectId, status])
+  @@index([deletedAt])
+  @@map("client_approvals")
+}
+
+// ============================================================
+// CONVERSATIONS
+// ============================================================
+
+model Conversation {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  projectId      Int?      @map("project_id")
+  taskId         Int?      @map("task_id")
+  teamId         Int?      @map("team_id")
+  createdById    Int?      @map("created_by_id")
+  name           String?
+  includeClients Boolean   @default(false) @map("include_clients")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task         Task?                @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  team         Team?                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdBy    User?                @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  members      ConversationMember[]
+  messages     Message[]
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([deletedAt])
+  @@map("conversations")
+}
+
+// ============================================================
+// CONVERSATION MEMBERS
+// ============================================================
+
+model ConversationMember {
+  id             Int       @id @default(autoincrement())
+  conversationId Int       @map("conversation_id")
+  userId         Int       @map("user_id")
+  joinedAt       DateTime? @map("joined_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+  @@map("conversation_members")
+}
+
+// ============================================================
+// MESSAGES
+// ============================================================
+
+model Message {
+  id             Int       @id @default(autoincrement())
+  conversationId Int       @map("conversation_id")
+  senderId       Int       @map("sender_id")
+  content        String
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  attachments  Attachment[]
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([deletedAt])
+  @@map("messages")
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  type      String
+  title     String
+  message   String
+  data      String?
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("attachments")
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+// ============================================================
+// ACTIVITIES
+// ============================================================
+
+model Activity {
+  id             Int      @id @default(autoincrement())
+  organizationId Int      @map("organization_id")
+  projectId      Int?     @map("project_id")
+  actorId        Int      @map("actor_id")
+  action         String
+  entityType     String   @map("entity_type")
+  entityId       Int      @map("entity_id")
+  metadata       String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actor        User         @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([projectId, createdAt])
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@map("activities")
+}
+
+// ============================================================
+// PROJECT TEMPLATES
+// ============================================================
+
+model ProjectTemplate {
+  id             Int       @id @default(autoincrement())
+  organizationId Int       @map("organization_id")
+  name           String
+  description    String?
+  createdById    Int       @map("created_by_id")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User                @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  milestones   TemplateMilestone[]
+  tasks        TemplateTask[]
+
+  @@index([organizationId])
+  @@index([deletedAt])
+  @@map("project_templates")
+}
+
+// ============================================================
+// TEMPLATE MILESTONES
+// ============================================================
+
+model TemplateMilestone {
+  id          Int      @id @default(autoincrement())
+  templateId  Int      @map("template_id")
+  name        String
+  description String?
+  sortOrder   Int?     @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  template ProjectTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  tasks    TemplateTask[]
+
+  @@index([templateId])
+  @@map("template_milestones")
+}
+
+// ============================================================
+// TEMPLATE TASKS
+// ============================================================
+
+model TemplateTask {
+  id             Int      @id @default(autoincrement())
+  templateId     Int      @map("template_id")
+  milestoneId    Int?     @map("milestone_id")
+  name           String
+  description    String?
+  priority       String?
+  estimatedHours Decimal? @map("estimated_hours") @db.Decimal(10, 2)
+  sortOrder      Int?     @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  template  ProjectTemplate    @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  milestone TemplateMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+
+  @@index([templateId])
+  @@index([milestoneId])
+  @@map("template_tasks")
 }
