@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "templateId": 1,
+    "milestoneId": 1,
+    "name": "Define API Contracts & Schemas",
+    "description": "REST endpoints and OpenAPI specs",
+    "priority": "HIGH",
+    "estimatedHours": 16.0,
+    "sortOrder": 1
+  },
+  {
+    "id": 2,
+    "templateId": 1,
+    "milestoneId": 1,
+    "name": "Setup UI Design Tokens",
+    "description": "Tailwind colors and component themes",
+    "priority": "MEDIUM",
+    "estimatedHours": 8.0,
+    "sortOrder": 2
+  },
+  {
+    "id": 3,
+    "templateId": 1,
+    "milestoneId": 2,
+    "name": "Authentication & Role Access",
+    "description": "User sessions and RBAC middleware",
+    "priority": "URGENT",
+    "estimatedHours": 20.0,
+    "sortOrder": 1
+  },
+  {
+    "id": 4,
+    "templateId": 1,
+    "milestoneId": 2,
+    "name": "Core Feature CRUD Views",
+    "description": "Data tables, forms, and dialogs",
+    "priority": "HIGH",
+    "estimatedHours": 40.0,
+    "sortOrder": 2
+  }
+]

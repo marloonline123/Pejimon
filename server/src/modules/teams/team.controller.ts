@@ -25,7 +25,6 @@ export const index = async (
       prisma.team.findMany({
         where,
         include: {
-          teamManager: true,
           teamUsers: {
             include: {
               user: true,
@@ -64,23 +63,46 @@ export const store = async (
   res: Response,
 ): Promise<void> => {
   try {
+    let organizationId = req.body.organizationId;
+    if (!organizationId) {
+      const defaultOrg = await prisma.organization.findFirst();
+      if (defaultOrg) {
+        organizationId = defaultOrg.id;
+      } else {
+        const newOrg = await prisma.organization.create({
+          data: {
+            name: "Default Organization",
+            slug: "default-organization",
+          },
+        });
+        organizationId = newOrg.id;
+      }
+    }
+
+    const managerId = req.body.managerId || req.body.teamManagerId;
+    const userIds = (req.body.userIds || []).filter((id) => id !== managerId);
+
+    const teamUsersCreate: { userId: number; role: string }[] = [];
+    if (managerId) {
+      teamUsersCreate.push({ userId: managerId, role: "MANAGER" });
+    }
+    for (const uId of userIds) {
+      teamUsersCreate.push({ userId: uId, role: "MEMBER" });
+    }
+
     const team = await prisma.team.create({
       data: {
         name: req.body.name,
         description: req.body.description ?? null,
-        slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-        teamManagerId: req.body.teamManagerId,
-        ...(req.body.userIds &&
-          req.body.userIds.length > 0 && {
-            teamUsers: {
-              create: req.body.userIds.map((userId: number) => ({
-                user: { connect: { id: userId } },
-              })),
-            },
-          }),
+        slug: req.body.name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now().toString().slice(-4),
+        organizationId,
+        ...(teamUsersCreate.length > 0 && {
+          teamUsers: {
+            create: teamUsersCreate,
+          },
+        }),
       },
       include: {
-        teamManager: true,
         teamUsers: {
           include: { user: true },
         },
@@ -111,7 +133,6 @@ export const show = async (req: Request, res: Response): Promise<void> => {
         slug: slug,
       },
       include: {
-        teamManager: true,
         teamUsers: {
           include: { user: true },
         },
@@ -137,34 +158,54 @@ export const show = async (req: Request, res: Response): Promise<void> => {
 export const update = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
+    const existing = await prisma.team.findFirst({ where: { slug } });
+    if (!existing) {
+      res.status(404).json({ success: false, message: "Team not found" });
+      return;
+    }
 
-    if (req.body.userIds !== undefined) {
+    const managerId = req.body.managerId || req.body.teamManagerId;
+    const userIds = req.body.userIds;
+
+    if (userIds !== undefined || managerId !== undefined) {
       await prisma.teamUser.deleteMany({
         where: {
-          team: { slug: slug },
+          teamId: existing.id,
         },
       });
+
+      const teamUsersCreate: { userId: number; role: string }[] = [];
+      if (managerId) {
+        teamUsersCreate.push({ userId: managerId, role: "MANAGER" });
+      }
+      if (userIds) {
+        for (const uId of userIds) {
+          if (uId !== managerId) {
+            teamUsersCreate.push({ userId: uId, role: "MEMBER" });
+          }
+        }
+      }
+
+      if (teamUsersCreate.length > 0) {
+        await prisma.teamUser.createMany({
+          data: teamUsersCreate.map((tu) => ({
+            teamId: existing.id,
+            userId: tu.userId,
+            role: tu.role,
+          })),
+        });
+      }
     }
 
     const team = await prisma.team.update({
       where: {
-        slug: slug,
+        id: existing.id,
       },
       data: {
         name: req.body.name,
         description: req.body.description ?? null,
-        slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-        teamManagerId: req.body.teamManagerId,
-        ...(req.body.userIds && {
-          teamUsers: {
-            create: req.body.userIds.map((userId: number) => ({
-              user: { connect: { id: userId } },
-            })),
-          },
-        }),
       },
       include: {
-        teamManager: true,
         teamUsers: {
           include: { user: true },
         },
@@ -190,9 +231,15 @@ export const update = async (req: Request, res: Response): Promise<void> => {
 export const destroy = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
+    const existing = await prisma.team.findFirst({ where: { slug } });
+    if (!existing) {
+      res.status(404).json({ success: false, message: "Team not found" });
+      return;
+    }
+
     const team = await prisma.team.delete({
       where: {
-        slug: slug,
+        id: existing.id,
       },
     });
     res.status(200).json({

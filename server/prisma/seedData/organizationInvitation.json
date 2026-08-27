@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "organizationId": 1,
+    "email": "candidate@example.com",
+    "tokenHash": "inv_token_hash_alpha",
+    "invitedById": "user-1",
+    "expiresAt": "2026-12-31T23:59:59.000Z"
+  }
+]

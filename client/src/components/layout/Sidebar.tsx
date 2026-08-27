@@ -21,7 +21,7 @@ import { Button } from "../ui/button";
 import { useGetProjectsQuery } from "@/state/api";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Projects", href: "/projects", icon: Briefcase },
   { name: "Team", href: "/teams", icon: Users },
   { name: "Calendar", href: "/calendar", icon: Calendar },

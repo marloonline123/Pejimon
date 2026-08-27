@@ -5,13 +5,28 @@ import Sidebar from "@/components/layout/Sidebar";
 import React from "react";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
 import { Toaster } from "@/components/ui/toast";
+import { usePathname } from "next/navigation";
 
 type Props = {
   children: React.ReactNode;
 };
 
+const AUTH_ROUTES = ["/login", "/register"];
+
 export default function DashboardWrapper({ children }: Props) {
   useThemeToggle(); // Initializes theme sync on mount
+  const pathname = usePathname();
+
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+
+  if (isAuthRoute) {
+    return (
+      <div className="min-h-screen bg-alice-blue-900 text-ink-black-200 dark:bg-ink-black-100 dark:text-alice-blue-900">
+        {children}
+        <Toaster />
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full h-screen bg-alice-blue-900 text-ink-black-200 dark:bg-ink-black-100 dark:text-alice-blue-900">

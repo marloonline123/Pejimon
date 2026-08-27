@@ -1,20 +1,24 @@
 [
   {
-    "name": "Website Redesign",
-    "slug": "website-redesign",
-    "status": "WorkInProgress",
-    "description": "Redesigning the company website for better UX",
-    "startDate": "2026-09-01T00:00:00Z",
-    "endDate": "2026-12-31T00:00:00Z",
-    "userId": 1
+    "id": 1,
+    "organizationId": 1,
+    "name": "NextGen Management Portal",
+    "slug": "nextgen-management-portal",
+    "description": "A comprehensive enterprise project management web application.",
+    "status": "ACTIVE",
+    "startDate": "2026-08-01T00:00:00.000Z",
+    "endDate": "2026-12-31T00:00:00.000Z",
+    "createdById": "user-1"
   },
   {
-    "name": "Mobile App V2",
-    "slug": "mobile-app-v2",
-    "status": "WorkInProgress",
-    "description": "Building the second version of our mobile application",
-    "startDate": "2026-10-01T00:00:00Z",
-    "endDate": "2027-03-31T00:00:00Z",
-    "userId": 1
+    "id": 2,
+    "organizationId": 1,
+    "name": "Mobile Companion App",
+    "slug": "mobile-companion-app",
+    "description": "iOS and Android application for real-time task notifications.",
+    "status": "PLANNING",
+    "startDate": "2026-09-15T00:00:00.000Z",
+    "endDate": "2027-03-30T00:00:00.000Z",
+    "createdById": "user-2"
   }
 ]

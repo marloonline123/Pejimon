@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "organizationId": 1,
+    "taskId": 2,
+    "userId": "user-2",
+    "startedAt": "2026-08-25T09:00:00.000Z",
+    "endedAt": "2026-08-25T14:30:00.000Z",
+    "durationHours": 5.5,
+    "description": "Implemented client auth wrapper and login form validation"
+  }
+]

@@ -1,0 +1,44 @@
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import prisma from "./prismaClient.js";
+const auth = betterAuth({
+    database: prismaAdapter(prisma, { provider: "postgresql" }),
+    emailAndPassword: {
+        enabled: true,
+    },
+    user: {
+        additionalFields: {
+            username: {
+                type: "string",
+                required: false,
+                input: true,
+            },
+        },
+    },
+    databaseHooks: {
+        user: {
+            create: {
+                before: async (user) => {
+                    const baseUsername = user.username ||
+                        user.name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+                    const uniqueSuffix = Math.floor(1000 + Math.random() * 9000);
+                    return {
+                        data: {
+                            ...user,
+                            username: user.username ||
+                                `${baseUsername}-${uniqueSuffix}`,
+                        },
+                    };
+                },
+            },
+        },
+    },
+    //   advanced: {
+    //     database: {
+    //       generateId: false,
+    //     },
+    //   },
+    trustedOrigins: [process.env.FRONTEND_URL],
+});
+export default auth;
+//# sourceMappingURL=auth.js.map

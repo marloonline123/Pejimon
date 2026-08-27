@@ -1,824 +1,851 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+provider = "prisma-client-js"
+}
+
+datasource db {
+provider = "postgresql"
+}
+
 // ============================================================
 // USERS
 // ============================================================
 
-Table users {
-id integer [primary key, increment]
+model User {
+id String @id
+name String
+username String @unique
+phoneNumber String? @unique @map("phone_number")
+email String @unique
+password String?
+profilePicturePath String? @map("profile_picture_path")
+deletedAt DateTime? @map("deleted_at")
+createdAt DateTime @default(now()) @map("created_at")
+updatedAt DateTime @updatedAt @map("updated_at")
 
-name varchar [not null]
-username varchar [unique, not null]
-phone_number varchar [unique]
-email varchar [unique, not null]
-password varchar [not null]
+// Relations
+organizationMembers OrganizationMember[]
+organizationInvitations OrganizationInvitation[]
+// refreshTokens RefreshToken[]
+// emailVerificationTokens EmailVerificationToken[]
+// passwordResetTokens PasswordResetToken[]
+teamUsers TeamUser[]
+createdProjects Project[] @relation("ProjectCreator")
+projectUsers ProjectUser[]
+authoredTasks Task[] @relation("TaskAuthor")
+taskAssignments TaskAssignment[] @relation("TaskAssignee")
+taskAssignedBy TaskAssignment[] @relation("TaskAssigner")
+createdMilestones Milestone[] @relation("MilestoneCreator")
+comments Comment[]
+attachments Attachment[]
+timeEntries TimeEntry[]
+clients Client[]
+createdConversations Conversation[] @relation("ConversationCreator")
+conversationMembers ConversationMember[]
+messages Message[]
+notifications Notification[]
+activities Activity[]
+createdTemplates ProjectTemplate[]
 
-profilePicturePath varchar
+emailVerified Boolean @default(false)
+image String?
+sessions Session[]
+accounts Account[]
 
-emailVerifiedAt timestamp
-
-// Soft deletion
-deletedAt timestamp
-
-created_at timestamp
-updated_at timestamp
-
-indexes {
-(deletedAt)
-}
+@@index([deletedAt])
+@@map("users")
 }
 
 // ============================================================
 // ORGANIZATIONS
 // ============================================================
 
-Table organizations {
-id integer [primary key, increment]
+// model Organization {
+// id Int @id @default(autoincrement())
+// name String
+// slug String @unique
+// description String?
+// logoPath String? @map("logo_path")
+// deletedAt DateTime? @map("deleted_at")
+// createdAt DateTime @default(now()) @map("created_at")
+// updatedAt DateTime @updatedAt @map("updated_at")
 
-name varchar [not null]
-slug varchar [unique, not null]
+// // Relations
+// members OrganizationMember[]
+// invitations OrganizationInvitation[]
+// teams Team[]
+// projects Project[]
+// tasks Task[]
+// taskDependencies TaskDependency[]
+// milestones Milestone[]
+// comments Comment[]
+// attachments Attachment[]
+// timeEntries TimeEntry[]
+// clients Client[]
+// clientInvitations ClientInvitation[]
+// conversations Conversation[]
+// activities Activity[]
+// projectTemplates ProjectTemplate[]
 
-description text
-logoPath varchar
+// @@index([deletedAt])
+// @@map("organizations")
+// }
 
-deletedAt timestamp
+// // ============================================================
+// // ORGANIZATION MEMBERS
+// // ============================================================
 
-created_at timestamp
-updated_at timestamp
+// model OrganizationMember {
+// id Int @id @default(autoincrement())
+// organizationId Int @map("organization_id")
+// userId String @map("user_id")
+// role String // OWNER, MEMBER
+// createdAt DateTime @default(now()) @map("created_at")
+// updatedAt DateTime @updatedAt @map("updated_at")
 
-indexes {
-(deletedAt)
-}
-}
+// organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+// user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-// ============================================================
-// ORGANIZATION MEMBERS
-// ============================================================
+// @@unique([organizationId, userId])
+// @@index([organizationId])
+// @@index([userId])
+// @@map("organization_members")
+// }
 
-Table organization_members {
-id integer [primary key, increment]
+// // ============================================================
+// // ORGANIZATION INVITATIONS
+// // ============================================================
 
-organizationId integer [ref: > organizations.id, not null]
-userId integer [ref: > users.id, not null]
+// model OrganizationInvitation {
+// id Int @id @default(autoincrement())
+// organizationId Int @map("organization_id")
+// email String
+// tokenHash String @unique @map("token_hash")
+// invitedById String @map("invited_by_id")
+// expiresAt DateTime @map("expires_at")
+// acceptedAt DateTime? @map("accepted_at")
+// createdAt DateTime @default(now()) @map("created_at")
 
-// ONLY:
-// OWNER
-// MEMBER
-role varchar [not null]
+// organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+// invitedBy User @relation(fields: [invitedById], references: [id], onDelete: Cascade)
 
-created_at timestamp
-updated_at timestamp
-
-indexes {
-(organizationId, userId) [unique]
-(organizationId)
-(userId)
-}
-}
-
-// ============================================================
-// ORGANIZATION INVITATIONS
-// ============================================================
-
-Table organization_invitations {
-id integer [primary key, increment]
-
-organizationId integer [ref: > organizations.id, not null]
-
-email varchar [not null]
-
-tokenHash varchar [unique, not null]
-
-invitedById integer [ref: > users.id, not null]
-
-expiresAt timestamp [not null]
-acceptedAt timestamp
-
-created_at timestamp
-
-indexes {
-(organizationId, email)
-(tokenHash)
-}
-}
+// @@index([organizationId, email])
+// @@index([tokenHash])
+// @@map("organization_invitations")
+// }
 
 // ============================================================
 // REFRESH TOKENS
 // ============================================================
 
-Table refresh_tokens {
-id integer [primary key, increment]
+// model RefreshToken {
+// id Int @id @default(autoincrement())
+// userId Int @map("user_id")
+// tokenHash String @unique @map("token_hash")
+// deviceName String? @map("device_name")
+// platform String?
+// expiresAt DateTime @map("expires_at")
+// revokedAt DateTime? @map("revoked_at")
+// lastUsedAt DateTime? @map("last_used_at")
+// createdAt DateTime @default(now()) @map("created_at")
 
-userId integer [ref: > users.id, not null]
+// user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-tokenHash varchar [unique, not null]
+// @@index([userId])
+// @@index([tokenHash])
+// @@map("refresh_tokens")
+// }
 
-deviceName varchar
-platform varchar
+// // ============================================================
+// // EMAIL VERIFICATION TOKENS
+// // ============================================================
 
-expiresAt timestamp [not null]
-revokedAt timestamp
+// model EmailVerificationToken {
+// id Int @id @default(autoincrement())
+// userId String @map("user_id")
+// tokenHash String @unique @map("token_hash")
+// expiresAt DateTime @map("expires_at")
+// usedAt DateTime? @map("used_at")
+// createdAt DateTime @default(now()) @map("created_at")
 
-lastUsedAt timestamp
+// user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-created_at timestamp
+// @@index([userId])
+// @@index([tokenHash])
+// @@map("email_verification_tokens")
+// }
 
-indexes {
-(userId)
-(tokenHash)
-}
-}
+// // ============================================================
+// // PASSWORD RESET TOKENS
+// // ============================================================
 
-// ============================================================
-// EMAIL VERIFICATION
-// ============================================================
+// model PasswordResetToken {
+// id Int @id @default(autoincrement())
+// userId String @map("user_id")
+// tokenHash String @unique @map("token_hash")
+// expiresAt DateTime @map("expires_at")
+// usedAt DateTime? @map("used_at")
+// createdAt DateTime @default(now()) @map("created_at")
 
-Table email_verification_tokens {
-id integer [primary key, increment]
+// user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-userId integer [ref: > users.id, not null]
-
-tokenHash varchar [unique, not null]
-
-expiresAt timestamp [not null]
-usedAt timestamp
-
-created_at timestamp
-
-indexes {
-(userId)
-(tokenHash)
-}
-}
-
-// ============================================================
-// PASSWORD RESET
-// ============================================================
-
-Table password_reset_tokens {
-id integer [primary key, increment]
-
-userId integer [ref: > users.id, not null]
-
-tokenHash varchar [unique, not null]
-
-expiresAt timestamp [not null]
-usedAt timestamp
-
-created_at timestamp
-
-indexes {
-(userId)
-(tokenHash)
-}
-}
+// @@index([userId])
+// @@index([tokenHash])
+// @@map("password_reset_tokens")
+// }
 
 // ============================================================
 // TEAMS
 // ============================================================
 
-Table teams {
-id integer [primary key, increment]
+// model Team {
+// id Int @id @default(autoincrement())
+// organizationId Int @map("organization_id")
+// name String
+// slug String
+// description String?
+// deletedAt DateTime? @map("deleted_at")
+// createdAt DateTime @default(now()) @map("created_at")
+// updatedAt DateTime @updatedAt @map("updated_at")
 
-organizationId integer [ref: > organizations.id, not null]
+// organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+// teamUsers TeamUser[]
+// projectTeams ProjectTeam[]
+// conversations Conversation[]
 
-name varchar [not null]
-slug varchar [not null]
-description text
+// @@unique([organizationId, slug])
+// @@index([organizationId])
+// @@index([deletedAt])
+// @@map("teams")
+// }
 
-managerId integer [ref: > users.id, not null]
+// // ============================================================
+// // TEAM MEMBERS
+// // ============================================================
 
-deletedAt timestamp
+// model TeamUser {
+// userId String @map("user_id")
+// teamId Int @map("team_id")
+// role String // MANAGER, MEMBER
+// createdAt DateTime @default(now()) @map("created_at")
 
-created_at timestamp
-updated_at timestamp
+// user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+// team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-indexes {
-(organizationId, slug) [unique]
-(organizationId)
-(managerId)
-(deletedAt)
-}
-}
-
-// ============================================================
-// TEAM MEMBERS
-// ============================================================
-
-Table team_user {
-userId integer [ref: > users.id, not null]
-teamId integer [ref: > teams.id, not null]
-
-created_at timestamp
-
-indexes {
-(userId, teamId) [unique]
-(userId)
-(teamId)
-}
-}
+// @@id([userId, teamId])
+// @@index([userId])
+// @@index([teamId])
+// @@map("team_user")
+// }
 
 // ============================================================
 // PROJECTS
 // ============================================================
 
-Table projects {
-id integer [primary key, increment]
+model Project {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+name String
+slug String
+description String?
+startDate DateTime? @map("start_date") @db.Date
+endDate DateTime? @map("end_date") @db.Date
+status String // PLANNING, ACTIVE, ON_HOLD, COMPLETED, ARCHIVED
+createdById String @map("created_by_id")
+deletedAt DateTime? @map("deleted_at")
+createdAt DateTime @default(now()) @map("created_at")
+updatedAt DateTime @updatedAt @map("updated_at")
 
-organizationId integer [ref: > organizations.id, not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+createdBy User @relation("ProjectCreator", fields: [createdById], references: [id], onDelete: Cascade)
+tasks Task[]
+projectTeams ProjectTeam[]
+projectUsers ProjectUser[]
+milestones Milestone[]
+attachments Attachment[]
+projectClients ProjectClient[]
+clientApprovals ClientApproval[]
+conversations Conversation[]
+activities Activity[]
 
-name varchar [not null]
-slug varchar [not null]
-
-description text
-
-startDate date
-endDate date
-
-status varchar [not null]
-
-// PLANNING
-// ACTIVE
-// ON_HOLD
-// COMPLETED
-// ARCHIVED
-
-createdById integer [ref: > users.id, not null]
-
-deletedAt timestamp
-
-created_at timestamp
-updated_at timestamp
-
-indexes {
-(organizationId, slug) [unique]
-(organizationId)
-(createdById)
-(status)
-(deletedAt)
-}
+@@unique([organizationId, slug])
+@@index([organizationId])
+@@index([createdById])
+@@index([status])
+@@index([deletedAt])
+@@map("projects")
 }
 
 // ============================================================
 // PROJECT TEAMS
 // ============================================================
 
-Table project_team {
-projectId integer [ref: > projects.id, not null]
-teamId integer [ref: > teams.id, not null]
+model ProjectTeam {
+projectId Int @map("project_id")
+teamId Int @map("team_id")
 
-indexes {
-(projectId, teamId) [unique]
-(projectId)
-(teamId)
-}
+project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+@@id([projectId, teamId])
+@@index([projectId])
+@@index([teamId])
+@@map("project_team")
 }
 
 // ============================================================
 // PROJECT MEMBERS
 // ============================================================
 
-Table project_user {
-id integer [primary key, increment]
+model ProjectUser {
+id Int @id @default(autoincrement())
+projectId Int @map("project_id")
+userId String @map("user_id")
+role String // MANAGER, MEMBER, VIEWER
+createdAt DateTime @default(now()) @map("created_at")
 
-projectId integer [ref: > projects.id, not null]
-userId integer [ref: > users.id, not null]
+project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-role varchar [not null]
-
-// MANAGER
-// MEMBER
-// VIEWER
-
-created_at timestamp
-
-indexes {
-(projectId, userId) [unique]
-(projectId)
-(userId)
-}
+@@unique([projectId, userId])
+@@index([projectId])
+@@index([userId])
+@@map("project_user")
 }
 
 // ============================================================
 // TASKS
 // ============================================================
 
-Table tasks {
-id integer [primary key, increment]
+model Task {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+projectId Int @map("project_id")
+milestoneId Int? @map("milestone_id")
+name String
+slug String
+description String?
+status String // TODO, IN_PROGRESS, UNDER_REVIEW, COMPLETED, CANCELLED
+priority String // LOW, MEDIUM, HIGH, URGENT
+tags String?
+startDate DateTime? @map("start_date") @db.Date
+dueDate DateTime? @map("due_date") @db.Date
+points Int?
+estimatedHours Decimal? @map("estimated_hours") @db.Decimal(10, 2)
+authorId String @map("author_id")
+deletedAt DateTime? @map("deleted_at")
+createdAt DateTime @default(now()) @map("created_at")
+updatedAt DateTime @updatedAt @map("updated_at")
 
-organizationId integer [ref: > organizations.id, not null]
-projectId integer [ref: > projects.id, not null]
-milestoneId integer [ref: > milestones.id]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+author User @relation("TaskAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+taskAssignments TaskAssignment[]
+dependencies TaskDependency[] @relation("TaskDependencies")
+dependents TaskDependency[] @relation("TaskDependents")
+comments Comment[]
+attachments Attachment[]
+timeEntries TimeEntry[]
+conversations Conversation[]
 
-name varchar [not null]
-slug varchar [not null]
-
-description text
-
-status varchar [not null]
-
-// TODO
-// IN_PROGRESS
-// UNDER_REVIEW
-// COMPLETED
-// CANCELLED
-
-priority varchar [not null]
-
-// LOW
-// MEDIUM
-// HIGH
-// URGENT
-
-tags varchar
-
-startDate date
-dueDate date
-
-points integer
-
-estimatedHours integer
-
-authorId integer [ref: > users.id, not null]
-
-deletedAt timestamp
-
-created_at timestamp
-updated_at timestamp
-
-indexes {
-(organizationId)
-(projectId)
-(projectId, slug) [unique]
-(projectId, status)
-(projectId, dueDate)
-(deletedAt)
-}
+@@unique([projectId, slug])
+@@index([organizationId])
+@@index([projectId])
+@@index([projectId, status])
+@@index([projectId, dueDate])
+@@index([deletedAt])
+@@map("tasks")
 }
 
 // ============================================================
 // TASK ASSIGNMENTS
 // ============================================================
 
-Table task_assignments {
-id integer [primary key, increment]
+model TaskAssignment {
+id Int @id @default(autoincrement())
+taskId Int @map("task_id")
+userId String @map("user_id")
+description String?
+assignedById String? @map("assigned_by_id")
+createdAt DateTime @default(now()) @map("created_at")
 
-taskId integer [ref: > tasks.id, not null]
-userId integer [ref: > users.id, not null]
+task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+user User @relation("TaskAssignee", fields: [userId], references: [id], onDelete: Cascade)
+assignedBy User? @relation("TaskAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
 
-description text
-
-assignedById integer [ref: > users.id]
-
-created_at timestamp
-
-indexes {
-(taskId, userId) [unique]
-(taskId)
-(userId)
-}
+@@unique([taskId, userId])
+@@index([taskId])
+@@index([userId])
+@@map("task_assignments")
 }
 
 // ============================================================
 // TASK DEPENDENCIES
 // ============================================================
 
-Table task_dependencies {
-id integer [primary key, increment]
+model TaskDependency {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+taskId Int @map("task_id")
+dependsOnTaskId Int @map("depends_on_task_id")
+createdAt DateTime @default(now()) @map("created_at")
 
-organizationId integer [ref: > organizations.id, not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+task Task @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+dependsOn Task @relation("TaskDependents", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
 
-taskId integer [ref: > tasks.id, not null]
-dependsOnTaskId integer [ref: > tasks.id, not null]
-
-created_at timestamp
-
-indexes {
-(taskId, dependsOnTaskId) [unique]
-(taskId)
-(dependsOnTaskId)
-}
+@@unique([taskId, dependsOnTaskId])
+@@index([taskId])
+@@index([dependsOnTaskId])
+@@map("task_dependencies")
 }
 
 // ============================================================
 // MILESTONES
 // ============================================================
 
-Table milestones {
-id integer [primary key, increment]
+model Milestone {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+projectId Int @map("project_id")
+name String
+description String?
+dueDate DateTime? @map("due_date") @db.Date
+status String // OPEN, COMPLETED, CANCELLED
+createdById String @map("created_by_id")
+deletedAt DateTime? @map("deleted_at")
+createdAt DateTime @default(now()) @map("created_at")
+updatedAt DateTime @updatedAt @map("updated_at")
 
-organizationId integer [ref: > organizations.id, not null]
-projectId integer [ref: > projects.id, not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+createdBy User @relation("MilestoneCreator", fields: [createdById], references: [id], onDelete: Cascade)
+tasks Task[]
 
-name varchar [not null]
-description text
-
-dueDate date
-
-status varchar [not null]
-
-// OPEN
-// COMPLETED
-// CANCELLED
-
-createdById integer [ref: > users.id, not null]
-
-deletedAt timestamp
-
-created_at timestamp
-updated_at timestamp
-
-indexes {
-(organizationId)
-(projectId)
-(projectId, dueDate)
-(deletedAt)
-}
+@@index([organizationId])
+@@index([projectId])
+@@index([projectId, dueDate])
+@@index([deletedAt])
+@@map("milestones")
 }
 
 // ============================================================
 // COMMENTS
 // ============================================================
 
-Table comments {
-id integer [primary key, increment]
+model Comment {
+id Int @id @default(autoincrement())
+body String
+organizationId Int @map("organization_id")
+taskId Int @map("task_id")
+userId String @map("user_id")
+parentId Int? @map("parent_id")
+createdAt DateTime @default(now()) @map("created_at")
+updatedAt DateTime @updatedAt @map("updated_at")
+deletedAt DateTime? @map("deleted_at")
 
-body text [not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+parent Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+replies Comment[] @relation("CommentReplies")
 
-organizationId integer [ref: > organizations.id, not null]
-
-taskId integer [ref: > tasks.id, not null]
-userId integer [ref: > users.id, not null]
-
-parentId integer [ref: > comments.id]
-
-created_at timestamp
-updated_at timestamp
-
-deletedAt timestamp
-
-indexes {
-(taskId, created_at)
-(userId)
-(parentId)
-(deletedAt)
-}
+@@index([taskId, createdAt])
+@@index([userId])
+@@index([parentId])
+@@index([deletedAt])
+@@map("comments")
 }
 
 // ============================================================
 // ATTACHMENTS
 // ============================================================
 
-Table attachments {
-id integer [primary key, increment]
+model Attachment {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+name String
+path String
+mimeType String? @map("mime_type")
+size Int?
+uploadedById String @map("uploaded_by_id")
+taskId Int? @map("task_id")
+projectId Int? @map("project_id")
+messageId Int? @map("message_id")
+deletedAt DateTime? @map("deleted_at")
+createdAt DateTime @default(now()) @map("created_at")
 
-organizationId integer [ref: > organizations.id, not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+uploadedBy User @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+task Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+message Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
-name varchar [not null]
+// NOTE: Exactly one of taskId, projectId, or messageId must be set.
+// This constraint is enforced at the application level.
 
-// Object storage key
-// Example:
-// organizations/42/projects/10/tasks/20/file.pdf
-path varchar [not null]
-
-mimeType varchar
-size integer
-
-uploadedById integer [ref: > users.id, not null]
-
-taskId integer [ref: > tasks.id]
-projectId integer [ref: > projects.id]
-messageId integer [ref: > messages.id]
-
-deletedAt timestamp
-
-created_at timestamp
-
-indexes {
-(organizationId)
-(taskId)
-(projectId)
-(messageId)
-(deletedAt)
-}
+@@index([organizationId])
+@@index([taskId])
+@@index([projectId])
+@@index([messageId])
+@@index([deletedAt])
+@@map("attachments")
 }
 
 // ============================================================
 // TIME ENTRIES
 // ============================================================
 
-Table time_entries {
-id integer [primary key, increment]
+model TimeEntry {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+taskId Int @map("task_id")
+userId String @map("user_id")
+startedAt DateTime @map("started_at")
+endedAt DateTime? @map("ended_at")
+durationHours Decimal? @map("duration_hours") @db.Decimal(10, 2)
+description String?
+createdAt DateTime @default(now()) @map("created_at")
 
-organizationId integer [ref: > organizations.id, not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-taskId integer [ref: > tasks.id, not null]
-userId integer [ref: > users.id, not null]
-
-startedAt timestamp [not null]
-endedAt timestamp
-
-durationHours integer
-
-description text
-
-created_at timestamp
+@@index([organizationId])
+@@index([taskId])
+@@index([userId])
+@@map("time_entries")
 }
 
 // ============================================================
 // CLIENTS
 // ============================================================
 
-Table clients {
-id integer [primary key, increment]
+model Client {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+userId String? @map("user_id")
+companyName String? @map("company_name")
+deletedAt DateTime? @map("deleted_at")
+createdAt DateTime @default(now()) @map("created_at")
+updatedAt DateTime @updatedAt @map("updated_at")
 
-organizationId integer [ref: > organizations.id, not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+projectClients ProjectClient[]
+clientApprovals ClientApproval[]
 
-userId integer [ref: > users.id]
-
-companyName varchar
-
-deletedAt timestamp
-
-created_at timestamp
-updated_at timestamp
-
-indexes {
-(organizationId)
-(userId)
-(deletedAt)
-}
+@@index([organizationId])
+@@index([userId])
+@@index([deletedAt])
+@@map("clients")
 }
 
 // ============================================================
 // PROJECT CLIENTS
 // ============================================================
 
-Table project_clients {
-id integer [primary key, increment]
+model ProjectClient {
+id Int @id @default(autoincrement())
+projectId Int @map("project_id")
+clientId Int @map("client_id")
+createdAt DateTime @default(now()) @map("created_at")
 
-projectId integer [ref: > projects.id, not null]
-clientId integer [ref: > clients.id, not null]
+project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
-created_at timestamp
-
-indexes {
-(projectId, clientId) [unique]
-(projectId)
-(clientId)
-}
+@@unique([projectId, clientId])
+@@index([projectId])
+@@index([clientId])
+@@map("project_clients")
 }
 
 // ============================================================
 // CLIENT INVITATIONS
 // ============================================================
 
-Table client_invitations {
-id integer [primary key, increment]
+model ClientInvitation {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+email String
+tokenHash String @unique @map("token_hash")
+expiresAt DateTime @map("expires_at")
+acceptedAt DateTime? @map("accepted_at")
+createdAt DateTime @default(now()) @map("created_at")
 
-organizationId integer [ref: > organizations.id, not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-email varchar [not null]
-
-tokenHash varchar [unique, not null]
-
-expiresAt timestamp [not null]
-acceptedAt timestamp
-
-created_at timestamp
-
-indexes {
-(organizationId)
-(tokenHash)
-}
+@@index([organizationId])
+@@index([tokenHash])
+@@map("client_invitations")
 }
 
 // ============================================================
 // CLIENT APPROVALS
 // ============================================================
 
-Table client_approvals {
-id integer [primary key, increment]
+model ClientApproval {
+id Int @id @default(autoincrement())
+projectId Int @map("project_id")
+clientId Int @map("client_id")
+title String
+description String?
+status String // PENDING, APPROVED, CHANGES_REQUESTED
+respondedAt DateTime? @map("responded_at")
+response String?
+createdAt DateTime @default(now()) @map("created_at")
+updatedAt DateTime @updatedAt @map("updated_at")
+deletedAt DateTime? @map("deleted_at")
 
-projectId integer [ref: > projects.id, not null]
-clientId integer [ref: > clients.id, not null]
+project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
-title varchar [not null]
-description text
-
-status varchar [not null]
-
-// PENDING
-// APPROVED
-// CHANGES_REQUESTED
-
-respondedAt timestamp
-response text
-
-created_at timestamp
-updated_at timestamp
-
-deletedAt timestamp
-
-indexes {
-(projectId)
-(clientId)
-(projectId, status)
-(deletedAt)
-}
+@@index([projectId])
+@@index([clientId])
+@@index([projectId, status])
+@@index([deletedAt])
+@@map("client_approvals")
 }
 
 // ============================================================
 // CONVERSATIONS
 // ============================================================
 
-Table conversations {
-id integer [primary key, increment]
+model Conversation {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+projectId Int? @map("project_id")
+taskId Int? @map("task_id")
+teamId Int? @map("team_id")
+createdById String? @map("created_by_id")
+name String?
+includeClients Boolean @default(false) @map("include_clients")
+deletedAt DateTime? @map("deleted_at")
+createdAt DateTime @default(now()) @map("created_at")
+updatedAt DateTime @updatedAt @map("updated_at")
 
-organizationId integer [ref: > organizations.id, not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+task Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+team Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+createdBy User? @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+members ConversationMember[]
+messages Message[]
 
-projectId integer [ref: > projects.id]
-
-taskId integer [ref: > tasks.id]
-
-teamId integer [ref: > teams.id]
-
-userId integer [ref: > users.id]
-
-createdById integer [ref: > users.id]
-
-name varchar
-
-deletedAt timestamp
-
-created_at timestamp
-updated_at timestamp
-
-indexes {
-(organizationId)
-(projectId)
-(deletedAt)
-}
+@@index([organizationId])
+@@index([projectId])
+@@index([deletedAt])
+@@map("conversations")
 }
 
 // ============================================================
 // CONVERSATION MEMBERS
 // ============================================================
 
-Table conversation_members {
-id integer [primary key, increment]
+model ConversationMember {
+id Int @id @default(autoincrement())
+conversationId Int @map("conversation_id")
+userId String @map("user_id")
+joinedAt DateTime? @map("joined_at")
 
-conversationId integer [ref: > conversations.id, not null]
-userId integer [ref: > users.id, not null]
+conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-joinedAt timestamp
-
-indexes {
-(conversationId, userId) [unique]
-(conversationId)
-(userId)
-}
+@@unique([conversationId, userId])
+@@index([conversationId])
+@@index([userId])
+@@map("conversation_members")
 }
 
 // ============================================================
 // MESSAGES
 // ============================================================
 
-Table messages {
-id integer [primary key, increment]
+model Message {
+id Int @id @default(autoincrement())
+conversationId Int @map("conversation_id")
+senderId String @map("sender_id")
+content String
+createdAt DateTime @default(now()) @map("created_at")
+updatedAt DateTime @updatedAt @map("updated_at")
+deletedAt DateTime? @map("deleted_at")
 
-conversationId integer [ref: > conversations.id, not null]
-senderId integer [ref: > users.id, not null]
+conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+attachments Attachment[]
 
-content text [not null]
-
-created_at timestamp
-updated_at timestamp
-
-deletedAt timestamp
-
-indexes {
-(conversationId, created_at)
-(senderId)
-(deletedAt)
-}
+@@index([conversationId, createdAt])
+@@index([senderId])
+@@index([deletedAt])
+@@map("messages")
 }
 
 // ============================================================
 // NOTIFICATIONS
 // ============================================================
 
-Table notifications {
-id integer [primary key, increment]
+model Notification {
+id Int @id @default(autoincrement())
+userId String @map("user_id")
+type String
+title String
+message String
+data String?
+readAt DateTime? @map("read_at")
+createdAt DateTime @default(now()) @map("created_at")
 
-userId integer [ref: > users.id, not null]
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-type varchar [not null]
-
-title varchar [not null]
-message text [not null]
-
-data text
-
-readAt timestamp
-
-created_at timestamp
-
-indexes {
-(userId, created_at)
-(userId, readAt)
-}
+@@index([userId, createdAt])
+@@index([userId, readAt])
+@@map("notifications")
 }
 
 // ============================================================
 // ACTIVITIES
 // ============================================================
 
-Table activities {
-id integer [primary key, increment]
+model Activity {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+projectId Int? @map("project_id")
+actorId String @map("actor_id")
+action String
+entityType String @map("entity_type")
+entityId Int @map("entity_id")
+metadata String?
+createdAt DateTime @default(now()) @map("created_at")
 
-organizationId integer [ref: > organizations.id, not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+actor User @relation(fields: [actorId], references: [id], onDelete: Cascade)
 
-projectId integer [ref: > projects.id]
-
-actorId integer [ref: > users.id, not null]
-
-action varchar [not null]
-
-entityType varchar [not null]
-entityId integer [not null]
-
-metadata text
-
-created_at timestamp
-
-indexes {
-(organizationId, created_at)
-(projectId, created_at)
-(entityType, entityId)
-(actorId)
-}
+@@index([organizationId, createdAt])
+@@index([projectId, createdAt])
+@@index([entityType, entityId])
+@@index([actorId])
+@@map("activities")
 }
 
 // ============================================================
 // PROJECT TEMPLATES
 // ============================================================
 
-Table project_templates {
-id integer [primary key, increment]
+model ProjectTemplate {
+id Int @id @default(autoincrement())
+organizationId Int @map("organization_id")
+name String
+description String?
+createdById String @map("created_by_id")
+deletedAt DateTime? @map("deleted_at")
+createdAt DateTime @default(now()) @map("created_at")
+updatedAt DateTime @updatedAt @map("updated_at")
 
-organizationId integer [ref: > organizations.id, not null]
+organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+createdBy User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+milestones TemplateMilestone[]
+tasks TemplateTask[]
 
-name varchar [not null]
-description text
-
-createdById integer [ref: > users.id, not null]
-
-deletedAt timestamp
-
-created_at timestamp
-updated_at timestamp
-
-indexes {
-(organizationId)
-(deletedAt)
-}
+@@index([organizationId])
+@@index([deletedAt])
+@@map("project_templates")
 }
 
 // ============================================================
 // TEMPLATE MILESTONES
 // ============================================================
 
-Table template_milestones {
-id integer [primary key, increment]
+model TemplateMilestone {
+id Int @id @default(autoincrement())
+templateId Int @map("template_id")
+name String
+description String?
+sortOrder Int? @map("sort_order")
+createdAt DateTime @default(now()) @map("created_at")
 
-templateId integer [ref: > project_templates.id, not null]
+template ProjectTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+tasks TemplateTask[]
 
-name varchar [not null]
-description text
-
-sortOrder integer
-
-created_at timestamp
+@@index([templateId])
+@@map("template_milestones")
 }
 
 // ============================================================
 // TEMPLATE TASKS
 // ============================================================
 
-Table template_tasks {
-id integer [primary key, increment]
+model TemplateTask {
+id Int @id @default(autoincrement())
+templateId Int @map("template_id")
+milestoneId Int? @map("milestone_id")
+name String
+description String?
+priority String?
+estimatedHours Decimal? @map("estimated_hours") @db.Decimal(10, 2)
+sortOrder Int? @map("sort_order")
+createdAt DateTime @default(now()) @map("created_at")
 
-templateId integer [ref: > project_templates.id, not null]
+template ProjectTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+milestone TemplateMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
 
-milestoneId integer [ref: > template_milestones.id]
+@@index([templateId])
+@@index([milestoneId])
+@@map("template_tasks")
+}
 
-name varchar [not null]
-description text
+// ============================================================
+// BETTERAUTH SCHEMA
+// ============================================================
 
-priority varchar
+model Session {
+id String @id
+expiresAt DateTime
+token String
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+ipAddress String?
+userAgent String?
+userId String
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-estimatedMinutes integer
+@@unique([token])
+@@index([userId])
+@@map("session")
+}
 
-sortOrder integer
+model Account {
+id String @id
+issuer String
+accountId String
+providerId String
+userId String
+user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+accessToken String?
+refreshToken String?
+idToken String?
+accessTokenExpiresAt DateTime?
+refreshTokenExpiresAt DateTime?
+scope String?
+password String?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 
-created_at timestamp
+@@unique([issuer, accountId], map: "account_issuer_accountId_uidx")
+@@index([userId])
+@@map("account")
+}
+
+model Verification {
+id String @id
+identifier String
+value String
+expiresAt DateTime
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+
+@@index([identifier])
+@@map("verification")
 }

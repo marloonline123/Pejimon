@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "templateId": 1,
+    "name": "Phase 1: Wireframing & Tech Stack Setup",
+    "description": "Initial design and scaffolding",
+    "sortOrder": 1
+  },
+  {
+    "id": 2,
+    "templateId": 1,
+    "name": "Phase 2: MVP Development & Testing",
+    "description": "Core CRUD and testing",
+    "sortOrder": 2
+  }
+]

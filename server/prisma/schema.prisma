@@ -14,14 +14,13 @@ datasource db {
 // ============================================================
 
 model User {
-  id                 Int       @id @default(autoincrement())
+  id                 String    @id
   name               String
   username           String    @unique
   phoneNumber        String?   @unique @map("phone_number")
   email              String    @unique
-  password           String
+  password           String?
   profilePicturePath String?   @map("profile_picture_path")
-  emailVerifiedAt    DateTime? @map("email_verified_at")
   deletedAt          DateTime? @map("deleted_at")
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")
@@ -29,9 +28,9 @@ model User {
   // Relations
   organizationMembers     OrganizationMember[]
   organizationInvitations OrganizationInvitation[]
-  refreshTokens           RefreshToken[]
-  emailVerificationTokens EmailVerificationToken[]
-  passwordResetTokens     PasswordResetToken[]
+  // refreshTokens           RefreshToken[]
+  // emailVerificationTokens EmailVerificationToken[]
+  // passwordResetTokens     PasswordResetToken[]
   teamUsers               TeamUser[]
   createdProjects         Project[]                @relation("ProjectCreator")
   projectUsers            ProjectUser[]
@@ -49,6 +48,11 @@ model User {
   notifications           Notification[]
   activities              Activity[]
   createdTemplates        ProjectTemplate[]
+
+  emailVerified Boolean   @default(false)
+  image         String?
+  sessions      Session[]
+  accounts      Account[]
 
   @@index([deletedAt])
   @@map("users")
@@ -96,7 +100,7 @@ model Organization {
 model OrganizationMember {
   id             Int      @id @default(autoincrement())
   organizationId Int      @map("organization_id")
-  userId         Int      @map("user_id")
+  userId         String   @map("user_id")
   role           String // OWNER, MEMBER
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
@@ -119,7 +123,7 @@ model OrganizationInvitation {
   organizationId Int       @map("organization_id")
   email          String
   tokenHash      String    @unique @map("token_hash")
-  invitedById    Int       @map("invited_by_id")
+  invitedById    String    @map("invited_by_id")
   expiresAt      DateTime  @map("expires_at")
   acceptedAt     DateTime? @map("accepted_at")
   createdAt      DateTime  @default(now()) @map("created_at")
@@ -136,61 +140,61 @@ model OrganizationInvitation {
 // REFRESH TOKENS
 // ============================================================
 
-model RefreshToken {
-  id         Int       @id @default(autoincrement())
-  userId     Int       @map("user_id")
-  tokenHash  String    @unique @map("token_hash")
-  deviceName String?   @map("device_name")
-  platform   String?
-  expiresAt  DateTime  @map("expires_at")
-  revokedAt  DateTime? @map("revoked_at")
-  lastUsedAt DateTime? @map("last_used_at")
-  createdAt  DateTime  @default(now()) @map("created_at")
+// model RefreshToken {
+//   id         Int       @id @default(autoincrement())
+//   userId     Int       @map("user_id")
+//   tokenHash  String    @unique @map("token_hash")
+//   deviceName String?   @map("device_name")
+//   platform   String?
+//   expiresAt  DateTime  @map("expires_at")
+//   revokedAt  DateTime? @map("revoked_at")
+//   lastUsedAt DateTime? @map("last_used_at")
+//   createdAt  DateTime  @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([tokenHash])
-  @@map("refresh_tokens")
-}
+//   @@index([userId])
+//   @@index([tokenHash])
+//   @@map("refresh_tokens")
+// }
 
-// ============================================================
-// EMAIL VERIFICATION TOKENS
-// ============================================================
+// // ============================================================
+// // EMAIL VERIFICATION TOKENS
+// // ============================================================
 
-model EmailVerificationToken {
-  id        Int       @id @default(autoincrement())
-  userId    Int       @map("user_id")
-  tokenHash String    @unique @map("token_hash")
-  expiresAt DateTime  @map("expires_at")
-  usedAt    DateTime? @map("used_at")
-  createdAt DateTime  @default(now()) @map("created_at")
+// model EmailVerificationToken {
+//   id        Int       @id @default(autoincrement())
+//   userId    String       @map("user_id")
+//   tokenHash String    @unique @map("token_hash")
+//   expiresAt DateTime  @map("expires_at")
+//   usedAt    DateTime? @map("used_at")
+//   createdAt DateTime  @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([tokenHash])
-  @@map("email_verification_tokens")
-}
+//   @@index([userId])
+//   @@index([tokenHash])
+//   @@map("email_verification_tokens")
+// }
 
-// ============================================================
-// PASSWORD RESET TOKENS
-// ============================================================
+// // ============================================================
+// // PASSWORD RESET TOKENS
+// // ============================================================
 
-model PasswordResetToken {
-  id        Int       @id @default(autoincrement())
-  userId    Int       @map("user_id")
-  tokenHash String    @unique @map("token_hash")
-  expiresAt DateTime  @map("expires_at")
-  usedAt    DateTime? @map("used_at")
-  createdAt DateTime  @default(now()) @map("created_at")
+// model PasswordResetToken {
+//   id        Int       @id @default(autoincrement())
+//   userId    String       @map("user_id")
+//   tokenHash String    @unique @map("token_hash")
+//   expiresAt DateTime  @map("expires_at")
+//   usedAt    DateTime? @map("used_at")
+//   createdAt DateTime  @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([tokenHash])
-  @@map("password_reset_tokens")
-}
+//   @@index([userId])
+//   @@index([tokenHash])
+//   @@map("password_reset_tokens")
+// }
 
 // ============================================================
 // TEAMS
@@ -222,7 +226,7 @@ model Team {
 // ============================================================
 
 model TeamUser {
-  userId    Int      @map("user_id")
+  userId    String   @map("user_id")
   teamId    Int      @map("team_id")
   role      String // MANAGER, MEMBER
   createdAt DateTime @default(now()) @map("created_at")
@@ -249,7 +253,7 @@ model Project {
   startDate      DateTime? @map("start_date") @db.Date
   endDate        DateTime? @map("end_date") @db.Date
   status         String // PLANNING, ACTIVE, ON_HOLD, COMPLETED, ARCHIVED
-  createdById    Int       @map("created_by_id")
+  createdById    String    @map("created_by_id")
   deletedAt      DateTime? @map("deleted_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -298,7 +302,7 @@ model ProjectTeam {
 model ProjectUser {
   id        Int      @id @default(autoincrement())
   projectId Int      @map("project_id")
-  userId    Int      @map("user_id")
+  userId    String   @map("user_id")
   role      String // MANAGER, MEMBER, VIEWER
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -330,7 +334,7 @@ model Task {
   dueDate        DateTime? @map("due_date") @db.Date
   points         Int?
   estimatedHours Decimal?  @map("estimated_hours") @db.Decimal(10, 2)
-  authorId       Int       @map("author_id")
+  authorId       String    @map("author_id")
   deletedAt      DateTime? @map("deleted_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -363,9 +367,9 @@ model Task {
 model TaskAssignment {
   id           Int      @id @default(autoincrement())
   taskId       Int      @map("task_id")
-  userId       Int      @map("user_id")
+  userId       String   @map("user_id")
   description  String?
-  assignedById Int?     @map("assigned_by_id")
+  assignedById String?  @map("assigned_by_id")
   createdAt    DateTime @default(now()) @map("created_at")
 
   task       Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
@@ -411,7 +415,7 @@ model Milestone {
   description    String?
   dueDate        DateTime? @map("due_date") @db.Date
   status         String // OPEN, COMPLETED, CANCELLED
-  createdById    Int       @map("created_by_id")
+  createdById    String    @map("created_by_id")
   deletedAt      DateTime? @map("deleted_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -437,7 +441,7 @@ model Comment {
   body           String
   organizationId Int       @map("organization_id")
   taskId         Int       @map("task_id")
-  userId         Int       @map("user_id")
+  userId         String    @map("user_id")
   parentId       Int?      @map("parent_id")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -467,7 +471,7 @@ model Attachment {
   path           String
   mimeType       String?   @map("mime_type")
   size           Int?
-  uploadedById   Int       @map("uploaded_by_id")
+  uploadedById   String    @map("uploaded_by_id")
   taskId         Int?      @map("task_id")
   projectId      Int?      @map("project_id")
   messageId      Int?      @map("message_id")
@@ -499,7 +503,7 @@ model TimeEntry {
   id             Int       @id @default(autoincrement())
   organizationId Int       @map("organization_id")
   taskId         Int       @map("task_id")
-  userId         Int       @map("user_id")
+  userId         String    @map("user_id")
   startedAt      DateTime  @map("started_at")
   endedAt        DateTime? @map("ended_at")
   durationHours  Decimal?  @map("duration_hours") @db.Decimal(10, 2)
@@ -523,7 +527,7 @@ model TimeEntry {
 model Client {
   id             Int       @id @default(autoincrement())
   organizationId Int       @map("organization_id")
-  userId         Int?      @map("user_id")
+  userId         String?   @map("user_id")
   companyName    String?   @map("company_name")
   deletedAt      DateTime? @map("deleted_at")
   createdAt      DateTime  @default(now()) @map("created_at")
@@ -616,7 +620,7 @@ model Conversation {
   projectId      Int?      @map("project_id")
   taskId         Int?      @map("task_id")
   teamId         Int?      @map("team_id")
-  createdById    Int?      @map("created_by_id")
+  createdById    String?   @map("created_by_id")
   name           String?
   includeClients Boolean   @default(false) @map("include_clients")
   deletedAt      DateTime? @map("deleted_at")
@@ -644,7 +648,7 @@ model Conversation {
 model ConversationMember {
   id             Int       @id @default(autoincrement())
   conversationId Int       @map("conversation_id")
-  userId         Int       @map("user_id")
+  userId         String    @map("user_id")
   joinedAt       DateTime? @map("joined_at")
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
@@ -663,7 +667,7 @@ model ConversationMember {
 model Message {
   id             Int       @id @default(autoincrement())
   conversationId Int       @map("conversation_id")
-  senderId       Int       @map("sender_id")
+  senderId       String    @map("sender_id")
   content        String
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -685,7 +689,7 @@ model Message {
 
 model Notification {
   id        Int       @id @default(autoincrement())
-  userId    Int       @map("user_id")
+  userId    String    @map("user_id")
   type      String
   title     String
   message   String
@@ -708,7 +712,7 @@ model Activity {
   id             Int      @id @default(autoincrement())
   organizationId Int      @map("organization_id")
   projectId      Int?     @map("project_id")
-  actorId        Int      @map("actor_id")
+  actorId        String   @map("actor_id")
   action         String
   entityType     String   @map("entity_type")
   entityId       Int      @map("entity_id")
@@ -735,7 +739,7 @@ model ProjectTemplate {
   organizationId Int       @map("organization_id")
   name           String
   description    String?
-  createdById    Int       @map("created_by_id")
+  createdById    String    @map("created_by_id")
   deletedAt      DateTime? @map("deleted_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
@@ -790,4 +794,58 @@ model TemplateTask {
   @@index([templateId])
   @@index([milestoneId])
   @@map("template_tasks")
+}
+
+// ============================================================
+// BETTERAUTH SCHEMA
+// ============================================================
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  issuer                String
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([issuer, accountId], map: "account_issuer_accountId_uidx")
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }

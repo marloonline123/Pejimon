@@ -1,8 +1,13 @@
 [
   {
-    "name": "homepage-mockup.png",
-    "path": "/uploads/homepage-mockup.png",
+    "id": 1,
+    "organizationId": 1,
+    "projectId": 1,
     "taskId": 1,
-    "userId": 1
+    "name": "architecture_diagram.pdf",
+    "path": "organizations/1/projects/1/tasks/1/architecture_diagram.pdf",
+    "mimeType": "application/pdf",
+    "size": 2048576,
+    "uploadedById": "user-1"
   }
 ]

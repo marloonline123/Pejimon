@@ -63,6 +63,23 @@ export const store = async (
   res: Response,
 ): Promise<void> => {
   try {
+    // Ensure default organization exists or use provided
+    let organizationId = req.body.organizationId;
+    if (!organizationId) {
+      const defaultOrg = await prisma.organization.findFirst();
+      if (defaultOrg) {
+        organizationId = defaultOrg.id;
+      } else {
+        const newOrg = await prisma.organization.create({
+          data: {
+            name: "Default Organization",
+            slug: "default-organization",
+          },
+        });
+        organizationId = newOrg.id;
+      }
+    }
+
     const project = await prisma.project.create({
       data: {
         name: req.body.name,
@@ -70,8 +87,9 @@ export const store = async (
         status: req.body.status,
         startDate: req.body.startDate,
         endDate: req.body.endDate,
-        slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-        userId: 1, // TODO: Replace with authenticated user ID
+        slug: req.body.name.toLowerCase().replace(/\s+/g, "-"),
+        createdById: 1, // TODO: Replace with authenticated user ID
+        organizationId,
         ...(req.body.teamIds &&
           req.body.teamIds.length > 0 && {
             projectTeams: {
@@ -134,18 +152,23 @@ export const show = async (req: Request, res: Response): Promise<void> => {
 export const update = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
-    // If teamIds are provided, we first delete existing relations and then recreate them
+    const existing = await prisma.project.findFirst({ where: { slug } });
+    if (!existing) {
+      res.status(404).json({ success: false, message: "Project not found" });
+      return;
+    }
+
     if (req.body.teamIds !== undefined) {
       await prisma.projectTeam.deleteMany({
         where: {
-          project: { slug: slug },
+          projectId: existing.id,
         },
       });
     }
 
     const project = await prisma.project.update({
       where: {
-        slug: slug,
+        id: existing.id,
       },
       data: {
         name: req.body.name,
@@ -153,8 +176,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
         status: req.body.status,
         startDate: req.body.startDate,
         endDate: req.body.endDate,
-        slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
-        userId: 1, // TODO: Replace with authenticated user ID
+        slug: req.body.name ? req.body.name.toLowerCase().replace(/\s+/g, "-") : undefined,
         ...(req.body.teamIds && {
           projectTeams: {
             create: req.body.teamIds.map((teamId: number) => ({
@@ -189,9 +211,15 @@ export const update = async (req: Request, res: Response): Promise<void> => {
 export const destroy = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
+    const existing = await prisma.project.findFirst({ where: { slug } });
+    if (!existing) {
+      res.status(404).json({ success: false, message: "Project not found" });
+      return;
+    }
+
     const project = await prisma.project.delete({
       where: {
-        slug: slug,
+        id: existing.id,
       },
     });
     res.status(200).json({

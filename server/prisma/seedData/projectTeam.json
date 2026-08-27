@@ -8,7 +8,15 @@
     "teamId": 2
   },
   {
+    "projectId": 1,
+    "teamId": 3
+  },
+  {
     "projectId": 2,
     "teamId": 1
+  },
+  {
+    "projectId": 2,
+    "teamId": 3
   }
 ]

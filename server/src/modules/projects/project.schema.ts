@@ -1,14 +1,22 @@
 import z from "zod";
-import { Status } from "@prisma/client";
+
+export const ProjectStatusEnum = z.enum([
+  "PLANNING",
+  "ACTIVE",
+  "ON_HOLD",
+  "COMPLETED",
+  "ARCHIVED",
+]);
 
 const projectSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters long"),
   description: z
     .string()
     .min(3, "Description must be at least 3 characters long"),
-  status: z.enum(Status),
+  status: ProjectStatusEnum,
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
+  organizationId: z.number().int().optional(),
   teamIds: z.array(z.number()).optional(),
 });
 

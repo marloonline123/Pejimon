@@ -1,18 +1,33 @@
 import z from "zod";
-import { Status } from "@prisma/client";
+
+export const TaskStatusEnum = z.enum([
+  "TODO",
+  "IN_PROGRESS",
+  "UNDER_REVIEW",
+  "COMPLETED",
+  "CANCELLED",
+  "ToDo",
+  "WorkInProgress",
+  "UnderReview",
+  "Completed",
+]);
+
+export const TaskPriorityEnum = z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]);
 
 const taskSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters long"),
   description: z.string().optional(),
-  status: z.enum(Status),
-  priority: z.string(),
+  status: TaskStatusEnum,
+  priority: TaskPriorityEnum.or(z.string()),
   tags: z.string().optional(),
-  startDate: z.coerce.date(),
-  dueDate: z.coerce.date(),
+  startDate: z.coerce.date().optional(),
+  dueDate: z.coerce.date().optional(),
   points: z.number().int().optional(),
+  estimatedHours: z.number().optional(),
   projectId: z.number().int(),
-  authorId: z.number().int(),
-  assignedUserId: z.number().int(),
+  authorId: z.number().int().optional(),
+  assignedUserId: z.number().int().optional(),
+  assignedUserIds: z.array(z.number().int()).optional(),
 });
 
 export const taskQuerySchema = z.object({

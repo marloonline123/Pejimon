@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "conversationId": 1,
+    "senderId": "user-1",
+    "content": "Welcome everyone to the NextGen Portal development channel! 🚀"
+  },
+  {
+    "id": 2,
+    "conversationId": 1,
+    "senderId": "user-2",
+    "content": "Excited to collaborate! The new auth module is ready for initial testing."
+  },
+  {
+    "id": 3,
+    "conversationId": 1,
+    "senderId": "user-3",
+    "content": "I will start integrating the task grid components tomorrow morning."
+  }
+]
