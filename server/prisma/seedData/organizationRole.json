@@ -1,0 +1,10 @@
+[
+  {
+    "id": "role-1",
+    "organizationId": "org-1",
+    "role": "owner",
+    "permission": "all",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+]

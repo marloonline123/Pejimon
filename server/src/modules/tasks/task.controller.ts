@@ -46,6 +46,12 @@ export const index = async (
     const [tasks, total] = await Promise.all([
       prisma.task.findMany({
         where,
+        include: {
+          taskAssignments: {
+            include: { user: true },
+          },
+          author: true,
+        },
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
@@ -77,6 +83,19 @@ export const store = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const project = await prisma.project.findUnique({
+      where: { id: Number(req.body.projectId) },
+    });
+
+    if (!project) {
+      res.status(404).json({ success: false, message: "Project not found" });
+      return;
+    }
+
+    const assignedUserIds =
+      req.body.assignedUserIds ||
+      (req.body.assignedUserId ? [req.body.assignedUserId] : []);
+
     const task = await prisma.task.create({
       data: {
         name: req.body.name,
@@ -84,19 +103,39 @@ export const store = async (
         status: req.body.status,
         priority: req.body.priority,
         tags: req.body.tags || null,
-        startDate: req.body.startDate,
-        dueDate: req.body.dueDate,
-        points: Number(req.body.points) || 0,
-        projectId: Number(req.body.projectId),
-        authorId: Number(req.body.authorId),
-        assignedUserId: Number(req.body.assignedUserId),
-        slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
+        startDate: req.body.startDate || null,
+        dueDate: req.body.dueDate || null,
+        points: req.body.points !== undefined ? Number(req.body.points) : null,
+        estimatedHours:
+          req.body.estimatedHours !== undefined
+            ? req.body.estimatedHours
+            : null,
+        projectId: project.id,
+        organizationId: project.organizationId,
+        authorId: req.body.authorId || project.createdById,
+        slug:
+          req.body.name.toLowerCase().replace(/\s+/g, "-") +
+          "-" +
+          Date.now().toString().slice(-4),
+        ...(assignedUserIds.length > 0 && {
+          taskAssignments: {
+            create: assignedUserIds.map((userId: string) => ({
+              userId: userId,
+            })),
+          },
+        }),
+      },
+      include: {
+        taskAssignments: {
+          include: { user: true },
+        },
+        author: true,
       },
     });
     res.status(201).json({
       success: true,
       flash: {
-        success: "Task Created Successfuly",
+        success: "Task Created Successfully",
       },
       data: task,
     });
@@ -116,6 +155,16 @@ export const show = async (req: Request, res: Response): Promise<void> => {
       where: {
         slug: slug,
       },
+      include: {
+        taskAssignments: {
+          include: { user: true },
+        },
+        author: true,
+        comments: {
+          include: { user: true },
+        },
+        attachments: true,
+      },
     });
     res.status(200).json({
       success: true,
@@ -134,9 +183,25 @@ export const show = async (req: Request, res: Response): Promise<void> => {
 export const update = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
+    const existing = await prisma.task.findFirst({ where: { slug } });
+    if (!existing) {
+      res.status(404).json({ success: false, message: "Task not found" });
+      return;
+    }
+
+    const assignedUserIds =
+      req.body.assignedUserIds ||
+      (req.body.assignedUserId ? [req.body.assignedUserId] : undefined);
+
+    if (assignedUserIds !== undefined) {
+      await prisma.taskAssignment.deleteMany({
+        where: { taskId: existing.id },
+      });
+    }
+
     const task = await prisma.task.update({
       where: {
-        slug: slug,
+        id: existing.id,
       },
       data: {
         name: req.body.name,
@@ -147,16 +212,26 @@ export const update = async (req: Request, res: Response): Promise<void> => {
         startDate: req.body.startDate,
         dueDate: req.body.dueDate,
         points: req.body.points,
-        projectId: req.body.projectId,
-        authorId: req.body.authorId,
-        assignedUserId: req.body.assignedUserId,
-        slug: req.body.name.toLowerCase().replace(/\s/g, "-"),
+        estimatedHours: req.body.estimatedHours,
+        ...(assignedUserIds !== undefined && {
+          taskAssignments: {
+            create: assignedUserIds.map((userId: string) => ({
+              userId: userId,
+            })),
+          },
+        }),
+      },
+      include: {
+        taskAssignments: {
+          include: { user: true },
+        },
+        author: true,
       },
     });
     res.status(200).json({
       success: true,
       flash: {
-        success: "Task Updated Successfuly",
+        success: "Task Updated Successfully",
       },
       data: task,
     });
@@ -172,9 +247,15 @@ export const update = async (req: Request, res: Response): Promise<void> => {
 export const destroy = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
+    const existing = await prisma.task.findFirst({ where: { slug } });
+    if (!existing) {
+      res.status(404).json({ success: false, message: "Task not found" });
+      return;
+    }
+
     const task = await prisma.task.delete({
       where: {
-        slug: slug,
+        id: existing.id,
       },
       include: {
         taskAssignments: true,
@@ -185,7 +266,7 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       success: true,
       flash: {
-        success: "Task Deleted Successfuly",
+        success: "Task Deleted Successfully",
       },
       data: task,
     });

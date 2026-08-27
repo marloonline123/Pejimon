@@ -1,0 +1,14 @@
+[
+  {
+    "id": "sub-1",
+    "planId": "plan-pro",
+    "referenceId": "org-1",
+    "referenceModel": "Organization",
+    "status": "ACTIVE",
+    "periodStart": "2024-01-01T00:00:00.000Z",
+    "periodEnd": "2025-01-01T00:00:00.000Z",
+    "cancelAtPeriodEnd": false,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "projectId": 1,
+    "clientId": 1,
+    "title": "UI Design Specifications Approval",
+    "description": "Sign-off on the design system components and navigation flow.",
+    "status": "APPROVED",
+    "response": "Designs look outstanding! Approved for phase 2 implementation.",
+    "respondedAt": "2026-08-20T16:00:00.000Z"
+  }
+]

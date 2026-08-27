@@ -6,10 +6,11 @@ import {
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
 
-// or your toast library
+import { authClient } from "@/lib/auth-client";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+  credentials: "include",
 });
 
 export const baseQueryWithToast: BaseQueryFn<
@@ -43,23 +44,17 @@ export const baseQueryWithToast: BaseQueryFn<
   }
 
   // Error response
-  //   if (result.error) {
-  //     const errorData = result.error.data as {
-  //       message?: string;
-  //     };
-
-  //     if (errorData?.message) {
-  //       toast.add({
-  //         type: "error",
-  //         description: errorData.message,
-  //       });
-  //     } else {
-  //       toast.add({
-  //         type: "error",
-  //         description: "Something went wrong",
-  //       });
-  //     }
-  //   }
+  if (result.error) {
+    if (result.error.status === 401) {
+      // If 401 Unauthorized, sign out and redirect to login page
+      if (typeof window !== "undefined") {
+        await authClient.signOut();
+        window.location.href = "/login";
+      }
+    }
+    
+    // You could also show an error toast here if you uncommented the toast logic
+  }
 
   return result;
 };

@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "organizationId": "org-1",
+    "taskId": 2,
+    "dependsOnTaskId": 1
+  },
+  {
+    "id": 2,
+    "organizationId": "org-1",
+    "taskId": 3,
+    "dependsOnTaskId": 2
+  }
+]

@@ -1,0 +1,1 @@
+{"version":3,"file":"team.schema.d.ts","sourceRoot":"","sources":["../../../src/modules/teams/team.schema.ts"],"names":[],"mappings":"AAAA,OAAO,CAAC,MAAM,KAAK,CAAC;AAEpB,QAAA,MAAM,UAAU;;;;;;;iBAOd,CAAC;AAEH,eAAO,MAAM,eAAe;;;;iBAI1B,CAAC;eAEY,UAAU;AAEzB,MAAM,MAAM,UAAU,GAAG,CAAC,CAAC,KAAK,CAAC,OAAO,UAAU,CAAC,CAAC;AACpD,MAAM,MAAM,eAAe,GAAG,CAAC,CAAC,KAAK,CAAC,OAAO,eAAe,CAAC,CAAC"}

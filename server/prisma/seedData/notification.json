@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "userId": "user-2",
+    "type": "TASK_ASSIGNED",
+    "title": "New Task Assigned",
+    "message": "You have been assigned to 'Implement Better-Auth Flow'."
+  },
+  {
+    "id": 2,
+    "userId": "user-3",
+    "type": "COMMENT_REPLY",
+    "title": "New Reply on Task",
+    "message": "Jane replied to your question on task #1002."
+  }
+]

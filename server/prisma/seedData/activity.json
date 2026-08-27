@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "organizationId": "org-1",
+    "projectId": 1,
+    "actorId": "user-1",
+    "action": "PROJECT_CREATED",
+    "entityType": "Project",
+    "entityId": 1,
+    "metadata": "{\"name\":\"NextGen Management Portal\"}"
+  },
+  {
+    "id": 2,
+    "organizationId": "org-1",
+    "projectId": 1,
+    "actorId": "user-2",
+    "action": "TASK_STATUS_CHANGED",
+    "entityType": "Task",
+    "entityId": 2,
+    "metadata": "{\"oldStatus\":\"TODO\",\"newStatus\":\"IN_PROGRESS\"}"
+  }
+]

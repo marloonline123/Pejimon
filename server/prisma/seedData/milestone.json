@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "organizationId": "org-1",
+    "projectId": 1,
+    "name": "v1.0 Discovery & Architecture",
+    "description": "Finalize system architecture, schema design, and UI wireframes",
+    "dueDate": "2026-08-31T00:00:00.000Z",
+    "status": "COMPLETED",
+    "createdById": "user-1"
+  },
+  {
+    "id": 2,
+    "organizationId": "org-1",
+    "projectId": 1,
+    "name": "v1.5 Core Features Implementation",
+    "description": "Deliver auth, tasks, team management, and messaging",
+    "dueDate": "2026-10-15T00:00:00.000Z",
+    "status": "OPEN",
+    "createdById": "user-1"
+  }
+]

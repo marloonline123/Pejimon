@@ -1,13 +1,17 @@
 [
   {
-    "body": "I'll start working on the hero section first.",
-    "taskId": 1,
-    "userId": 1
+    "id": 1,
+    "organizationId": "org-1",
+    "taskId": 2,
+    "userId": "user-1",
+    "body": "Please make sure password reset and email verification hooks are properly tested."
   },
   {
-    "body": "Sounds good, make sure to follow the new brand guidelines.",
-    "taskId": 1,
-    "userId": 2,
-    "parentId": 1
+    "id": 2,
+    "organizationId": "org-1",
+    "taskId": 2,
+    "userId": "user-2",
+    "parentId": 1,
+    "body": "Working on integration tests right now! All standard flows are verified."
   }
 ]

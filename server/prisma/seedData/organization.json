@@ -1,0 +1,16 @@
+[
+  {
+    "id": "org-1",
+    "name": "Acme Innovations",
+    "slug": "acme-innovations",
+    "description": "Leading enterprise product development & engineering solutions",
+    "logo": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100"
+  },
+  {
+    "id": "org-2",
+    "name": "Starlight Digital",
+    "slug": "starlight-digital",
+    "description": "Creative design and mobile application studio",
+    "logo": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100"
+  }
+]
