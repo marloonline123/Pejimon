@@ -1,21 +1,21 @@
 [
   {
-    "id": 1,
-    "organizationId": 1,
+    "id": "team-1",
+    "organizationId": "org-1",
     "name": "Frontend Core",
     "slug": "frontend-core",
     "description": "React, Next.js, and client UI components development"
   },
   {
-    "id": 2,
-    "organizationId": 1,
+    "id": "team-2",
+    "organizationId": "org-1",
     "name": "Backend & Cloud",
     "slug": "backend-cloud",
     "description": "Node.js, Express, PostgreSQL, Prisma, and API integrations"
   },
   {
-    "id": 3,
-    "organizationId": 1,
+    "id": "team-3",
+    "organizationId": "org-1",
     "name": "Design & UX",
     "slug": "design-ux",
     "description": "UI/UX design, design systems, and prototyping"

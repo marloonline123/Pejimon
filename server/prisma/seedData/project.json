@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "name": "NextGen Management Portal",
     "slug": "nextgen-management-portal",
     "description": "A comprehensive enterprise project management web application.",
@@ -12,7 +12,7 @@
   },
   {
     "id": 2,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "name": "Mobile Companion App",
     "slug": "mobile-companion-app",
     "description": "iOS and Android application for real-time task notifications.",

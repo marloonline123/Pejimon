@@ -1,0 +1,12 @@
+[
+  {
+    "id": "inv-1",
+    "organizationId": "org-1",
+    "email": "candidate@example.com",
+    "role": "member",
+    "status": "pending",
+    "expiresAt": "2026-12-31T23:59:59.000Z",
+    "inviterId": "user-1",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+]

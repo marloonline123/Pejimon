@@ -1,0 +1,51 @@
+[
+  {
+    "id": "member-1",
+    "organizationId": "org-1",
+    "userId": "user-1",
+    "role": "owner",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "member-2",
+    "organizationId": "org-1",
+    "userId": "user-2",
+    "role": "member",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "member-3",
+    "organizationId": "org-1",
+    "userId": "user-3",
+    "role": "member",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "member-4",
+    "organizationId": "org-1",
+    "userId": "user-4",
+    "role": "member",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "member-5",
+    "organizationId": "org-1",
+    "userId": "user-5",
+    "role": "member",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "member-6",
+    "organizationId": "org-2",
+    "userId": "user-2",
+    "role": "owner",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "member-7",
+    "organizationId": "org-2",
+    "userId": "user-3",
+    "role": "member",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+]

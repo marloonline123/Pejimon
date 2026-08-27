@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "projectId": 1,
     "name": "General Project Discussions",
     "createdById": "user-1",

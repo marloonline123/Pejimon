@@ -1,4 +1,5 @@
 import prisma from "../../lib/prismaClient.js";
+import crypto from "crypto";
 export const index = async (req, res) => {
     try {
         const page = Number(req.query.page) || 1;
@@ -13,7 +14,7 @@ export const index = async (req, res) => {
             prisma.team.findMany({
                 where,
                 include: {
-                    teamUsers: {
+                    teamMembers: {
                         include: {
                             user: true,
                         },
@@ -56,6 +57,7 @@ export const store = async (req, res) => {
             else {
                 const newOrg = await prisma.organization.create({
                     data: {
+                        id: crypto.randomUUID(),
                         name: "Default Organization",
                         slug: "default-organization",
                     },
@@ -74,18 +76,19 @@ export const store = async (req, res) => {
         }
         const team = await prisma.team.create({
             data: {
+                id: crypto.randomUUID(),
                 name: req.body.name,
                 description: req.body.description ?? null,
                 slug: req.body.name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now().toString().slice(-4),
                 organizationId,
                 ...(teamUsersCreate.length > 0 && {
-                    teamUsers: {
+                    teamMembers: {
                         create: teamUsersCreate,
                     },
                 }),
             },
             include: {
-                teamUsers: {
+                teamMembers: {
                     include: { user: true },
                 },
             },
@@ -115,7 +118,7 @@ export const show = async (req, res) => {
                 slug: slug,
             },
             include: {
-                teamUsers: {
+                teamMembers: {
                     include: { user: true },
                 },
                 projectTeams: {
@@ -148,7 +151,7 @@ export const update = async (req, res) => {
         const managerId = req.body.managerId || req.body.teamManagerId;
         const userIds = req.body.userIds;
         if (userIds !== undefined || managerId !== undefined) {
-            await prisma.teamUser.deleteMany({
+            await prisma.teamMember.deleteMany({
                 where: {
                     teamId: existing.id,
                 },
@@ -165,7 +168,7 @@ export const update = async (req, res) => {
                 }
             }
             if (teamUsersCreate.length > 0) {
-                await prisma.teamUser.createMany({
+                await prisma.teamMember.createMany({
                     data: teamUsersCreate.map((tu) => ({
                         teamId: existing.id,
                         userId: tu.userId,
@@ -183,7 +186,7 @@ export const update = async (req, res) => {
                 description: req.body.description ?? null,
             },
             include: {
-                teamUsers: {
+                teamMembers: {
                     include: { user: true },
                 },
             },

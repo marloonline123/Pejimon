@@ -1,4 +1,5 @@
 import prisma from "../../lib/prismaClient.js";
+import crypto from "crypto";
 export const index = async (req, res) => {
     try {
         const page = Number(req.query.page) || 1;
@@ -60,6 +61,7 @@ export const store = async (req, res) => {
             else {
                 const newOrg = await prisma.organization.create({
                     data: {
+                        id: crypto.randomUUID(),
                         name: "Default Organization",
                         slug: "default-organization",
                     },
@@ -75,7 +77,7 @@ export const store = async (req, res) => {
                 startDate: req.body.startDate,
                 endDate: req.body.endDate,
                 slug: req.body.name.toLowerCase().replace(/\s+/g, "-"),
-                createdById: 1, // TODO: Replace with authenticated user ID
+                createdById: "user-1", // TODO: Replace with authenticated user ID
                 organizationId,
                 ...(req.body.teamIds &&
                     req.body.teamIds.length > 0 && {

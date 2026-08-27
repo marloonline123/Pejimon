@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "name": "SaaS Web Application Blueprint",
     "description": "Standard roadmap with discovery, design, development, and QA phases.",
     "createdById": "user-1"

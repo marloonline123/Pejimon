@@ -1,4 +1,4 @@
-import auth from "../lib/auth.js";
+import auth from "../config/auth.js";
 import { fromNodeHeaders } from "better-auth/node";
 export default async function requireAuth(req, res, next) {
     const session = await auth.api.getSession({

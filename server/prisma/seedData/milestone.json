@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "projectId": 1,
     "name": "v1.0 Discovery & Architecture",
     "description": "Finalize system architecture, schema design, and UI wireframes",
@@ -11,7 +11,7 @@
   },
   {
     "id": 2,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "projectId": 1,
     "name": "v1.5 Core Features Implementation",
     "description": "Deliver auth, tasks, team management, and messaging",

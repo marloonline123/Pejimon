@@ -76,7 +76,8 @@ export const store = async (req, res) => {
             res.status(404).json({ success: false, message: "Project not found" });
             return;
         }
-        const assignedUserIds = req.body.assignedUserIds || (req.body.assignedUserId ? [req.body.assignedUserId] : []);
+        const assignedUserIds = req.body.assignedUserIds ||
+            (req.body.assignedUserId ? [req.body.assignedUserId] : []);
         const task = await prisma.task.create({
             data: {
                 name: req.body.name,
@@ -87,15 +88,19 @@ export const store = async (req, res) => {
                 startDate: req.body.startDate || null,
                 dueDate: req.body.dueDate || null,
                 points: req.body.points !== undefined ? Number(req.body.points) : null,
-                estimatedHours: req.body.estimatedHours !== undefined ? req.body.estimatedHours : null,
+                estimatedHours: req.body.estimatedHours !== undefined
+                    ? req.body.estimatedHours
+                    : null,
                 projectId: project.id,
                 organizationId: project.organizationId,
-                authorId: Number(req.body.authorId) || project.createdById,
-                slug: req.body.name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now().toString().slice(-4),
+                authorId: req.body.authorId || project.createdById,
+                slug: req.body.name.toLowerCase().replace(/\s+/g, "-") +
+                    "-" +
+                    Date.now().toString().slice(-4),
                 ...(assignedUserIds.length > 0 && {
                     taskAssignments: {
                         create: assignedUserIds.map((userId) => ({
-                            userId: Number(userId),
+                            userId: userId,
                         })),
                     },
                 }),
@@ -163,7 +168,8 @@ export const update = async (req, res) => {
             res.status(404).json({ success: false, message: "Task not found" });
             return;
         }
-        const assignedUserIds = req.body.assignedUserIds || (req.body.assignedUserId ? [req.body.assignedUserId] : undefined);
+        const assignedUserIds = req.body.assignedUserIds ||
+            (req.body.assignedUserId ? [req.body.assignedUserId] : undefined);
         if (assignedUserIds !== undefined) {
             await prisma.taskAssignment.deleteMany({
                 where: { taskId: existing.id },
@@ -186,7 +192,7 @@ export const update = async (req, res) => {
                 ...(assignedUserIds !== undefined && {
                     taskAssignments: {
                         create: assignedUserIds.map((userId) => ({
-                            userId: Number(userId),
+                            userId: userId,
                         })),
                     },
                 }),

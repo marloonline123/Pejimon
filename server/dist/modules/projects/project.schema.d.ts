@@ -18,8 +18,8 @@ declare const projectSchema: z.ZodObject<{
     }>;
     startDate: z.ZodCoercedDate<unknown>;
     endDate: z.ZodCoercedDate<unknown>;
-    organizationId: z.ZodOptional<z.ZodNumber>;
-    teamIds: z.ZodOptional<z.ZodArray<z.ZodNumber>>;
+    organizationId: z.ZodOptional<z.ZodString>;
+    teamIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strip>;
 export declare const projectQuerySchema: z.ZodObject<{
     search: z.ZodOptional<z.ZodString>;

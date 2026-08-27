@@ -26,33 +26,36 @@ model User {
   updatedAt          DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  organizationMembers     OrganizationMember[]
-  organizationInvitations OrganizationInvitation[]
+  // organizationMembers     OrganizationMember[]
+  // organizationInvitations OrganizationInvitation[]
   // refreshTokens           RefreshToken[]
   // emailVerificationTokens EmailVerificationToken[]
   // passwordResetTokens     PasswordResetToken[]
-  teamUsers               TeamUser[]
-  createdProjects         Project[]                @relation("ProjectCreator")
-  projectUsers            ProjectUser[]
-  authoredTasks           Task[]                   @relation("TaskAuthor")
-  taskAssignments         TaskAssignment[]         @relation("TaskAssignee")
-  taskAssignedBy          TaskAssignment[]         @relation("TaskAssigner")
-  createdMilestones       Milestone[]              @relation("MilestoneCreator")
-  comments                Comment[]
-  attachments             Attachment[]
-  timeEntries             TimeEntry[]
-  clients                 Client[]
-  createdConversations    Conversation[]           @relation("ConversationCreator")
-  conversationMembers     ConversationMember[]
-  messages                Message[]
-  notifications           Notification[]
-  activities              Activity[]
-  createdTemplates        ProjectTemplate[]
+  teamMembers          TeamMember[]
+  createdProjects      Project[]            @relation("ProjectCreator")
+  projectUsers         ProjectUser[]
+  authoredTasks        Task[]               @relation("TaskAuthor")
+  taskAssignments      TaskAssignment[]     @relation("TaskAssignee")
+  taskAssignedBy       TaskAssignment[]     @relation("TaskAssigner")
+  createdMilestones    Milestone[]          @relation("MilestoneCreator")
+  comments             Comment[]
+  attachments          Attachment[]
+  timeEntries          TimeEntry[]
+  clients              Client[]
+  createdConversations Conversation[]       @relation("ConversationCreator")
+  conversationMembers  ConversationMember[]
+  messages             Message[]
+  notifications        Notification[]
+  activities           Activity[]
+  createdTemplates     ProjectTemplate[]
 
   emailVerified Boolean   @default(false)
   image         String?
   sessions      Session[]
   accounts      Account[]
+
+  members     Member[]
+  invitations Invitation[]
 
   @@index([deletedAt])
   @@map("users")
@@ -62,79 +65,48 @@ model User {
 // ORGANIZATIONS
 // ============================================================
 
-model Organization {
-  id          Int       @id @default(autoincrement())
-  name        String
-  slug        String    @unique
-  description String?
-  logoPath    String?   @map("logo_path")
-  deletedAt   DateTime? @map("deleted_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+// // ============================================================
+// // ORGANIZATION MEMBERS
+// // ============================================================
 
-  // Relations
-  members           OrganizationMember[]
-  invitations       OrganizationInvitation[]
-  teams             Team[]
-  projects          Project[]
-  tasks             Task[]
-  taskDependencies  TaskDependency[]
-  milestones        Milestone[]
-  comments          Comment[]
-  attachments       Attachment[]
-  timeEntries       TimeEntry[]
-  clients           Client[]
-  clientInvitations ClientInvitation[]
-  conversations     Conversation[]
-  activities        Activity[]
-  projectTemplates  ProjectTemplate[]
+// model OrganizationMember {
+//   id             Int      @id @default(autoincrement())
+//   organizationId String      @map("organization_id")
+//   userId         String   @map("user_id")
+//   role           String // OWNER, MEMBER
+//   createdAt      DateTime @default(now()) @map("created_at")
+//   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  @@index([deletedAt])
-  @@map("organizations")
-}
+//   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+//   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-// ============================================================
-// ORGANIZATION MEMBERS
-// ============================================================
+//   @@unique([organizationId, userId])
+//   @@index([organizationId])
+//   @@index([userId])
+//   @@map("organization_members")
+// }
 
-model OrganizationMember {
-  id             Int      @id @default(autoincrement())
-  organizationId Int      @map("organization_id")
-  userId         String   @map("user_id")
-  role           String // OWNER, MEMBER
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+// // ============================================================
+// // ORGANIZATION INVITATIONS
+// // ============================================================
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+// model OrganizationInvitation {
+//   id             Int       @id @default(autoincrement())
+//   organizationId String       @map("organization_id")
+//   email          String
+//   tokenHash      String    @unique @map("token_hash")
+//   invitedById    String    @map("invited_by_id")
+//   expiresAt      DateTime  @map("expires_at")
+//   acceptedAt     DateTime? @map("accepted_at")
+//   createdAt      DateTime  @default(now()) @map("created_at")
 
-  @@unique([organizationId, userId])
-  @@index([organizationId])
-  @@index([userId])
-  @@map("organization_members")
-}
+//   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+//   invitedBy    User         @relation(fields: [invitedById], references: [id], onDelete: Cascade)
 
-// ============================================================
-// ORGANIZATION INVITATIONS
-// ============================================================
-
-model OrganizationInvitation {
-  id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
-  email          String
-  tokenHash      String    @unique @map("token_hash")
-  invitedById    String    @map("invited_by_id")
-  expiresAt      DateTime  @map("expires_at")
-  acceptedAt     DateTime? @map("accepted_at")
-  createdAt      DateTime  @default(now()) @map("created_at")
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  invitedBy    User         @relation(fields: [invitedById], references: [id], onDelete: Cascade)
-
-  @@index([organizationId, email])
-  @@index([tokenHash])
-  @@map("organization_invitations")
-}
+//   @@index([organizationId, email])
+//   @@index([tokenHash])
+//   @@map("organization_invitations")
+// }
 
 // ============================================================
 // REFRESH TOKENS
@@ -201,19 +173,22 @@ model OrganizationInvitation {
 // ============================================================
 
 model Team {
-  id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
+  id             String  @id
+  organizationId String  @map("organization_id")
   name           String
   slug           String
   description    String?
-  deletedAt      DateTime? @map("deleted_at")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  memberCount    Int?
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
   organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  teamUsers     TeamUser[]
+  teamMembers   TeamMember[]
   projectTeams  ProjectTeam[]
   conversations Conversation[]
+  invitations   Invitation[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -221,14 +196,16 @@ model Team {
   @@map("teams")
 }
 
-// ============================================================
-// TEAM MEMBERS
-// ============================================================
+// // ============================================================
+// // TEAM MEMBERS
+// // ============================================================
 
-model TeamUser {
-  userId    String   @map("user_id")
-  teamId    Int      @map("team_id")
-  role      String // MANAGER, MEMBER
+model TeamMember {
+  userId        String  @map("user_id")
+  teamId        String  @map("team_id")
+  role          String // MANAGER, MEMBER
+  membershipKey String?
+
   createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -246,7 +223,7 @@ model TeamUser {
 
 model Project {
   id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
+  organizationId String    @map("organization_id")
   name           String
   slug           String
   description    String?
@@ -283,8 +260,8 @@ model Project {
 // ============================================================
 
 model ProjectTeam {
-  projectId Int @map("project_id")
-  teamId    Int @map("team_id")
+  projectId Int    @map("project_id")
+  teamId    String @map("team_id")
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   team    Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -321,7 +298,7 @@ model ProjectUser {
 
 model Task {
   id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
+  organizationId String    @map("organization_id")
   projectId      Int       @map("project_id")
   milestoneId    Int?      @map("milestone_id")
   name           String
@@ -388,7 +365,7 @@ model TaskAssignment {
 
 model TaskDependency {
   id              Int      @id @default(autoincrement())
-  organizationId  Int      @map("organization_id")
+  organizationId  String   @map("organization_id")
   taskId          Int      @map("task_id")
   dependsOnTaskId Int      @map("depends_on_task_id")
   createdAt       DateTime @default(now()) @map("created_at")
@@ -409,7 +386,7 @@ model TaskDependency {
 
 model Milestone {
   id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
+  organizationId String    @map("organization_id")
   projectId      Int       @map("project_id")
   name           String
   description    String?
@@ -439,7 +416,7 @@ model Milestone {
 model Comment {
   id             Int       @id @default(autoincrement())
   body           String
-  organizationId Int       @map("organization_id")
+  organizationId String    @map("organization_id")
   taskId         Int       @map("task_id")
   userId         String    @map("user_id")
   parentId       Int?      @map("parent_id")
@@ -466,7 +443,7 @@ model Comment {
 
 model Attachment {
   id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
+  organizationId String    @map("organization_id")
   name           String
   path           String
   mimeType       String?   @map("mime_type")
@@ -501,7 +478,7 @@ model Attachment {
 
 model TimeEntry {
   id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
+  organizationId String    @map("organization_id")
   taskId         Int       @map("task_id")
   userId         String    @map("user_id")
   startedAt      DateTime  @map("started_at")
@@ -526,7 +503,7 @@ model TimeEntry {
 
 model Client {
   id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
+  organizationId String    @map("organization_id")
   userId         String?   @map("user_id")
   companyName    String?   @map("company_name")
   deletedAt      DateTime? @map("deleted_at")
@@ -567,21 +544,21 @@ model ProjectClient {
 // CLIENT INVITATIONS
 // ============================================================
 
-model ClientInvitation {
-  id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
-  email          String
-  tokenHash      String    @unique @map("token_hash")
-  expiresAt      DateTime  @map("expires_at")
-  acceptedAt     DateTime? @map("accepted_at")
-  createdAt      DateTime  @default(now()) @map("created_at")
+// model ClientInvitation {
+//   id             Int       @id @default(autoincrement())
+//   organizationId String    @map("organization_id")
+//   email          String
+//   tokenHash      String    @unique @map("token_hash")
+//   expiresAt      DateTime  @map("expires_at")
+//   acceptedAt     DateTime? @map("accepted_at")
+//   createdAt      DateTime  @default(now()) @map("created_at")
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+//   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@index([organizationId])
-  @@index([tokenHash])
-  @@map("client_invitations")
-}
+//   @@index([organizationId])
+//   @@index([tokenHash])
+//   @@map("client_invitations")
+// }
 
 // ============================================================
 // CLIENT APPROVALS
@@ -616,10 +593,10 @@ model ClientApproval {
 
 model Conversation {
   id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
+  organizationId String    @map("organization_id")
   projectId      Int?      @map("project_id")
   taskId         Int?      @map("task_id")
-  teamId         Int?      @map("team_id")
+  teamId         String?   @map("team_id")
   createdById    String?   @map("created_by_id")
   name           String?
   includeClients Boolean   @default(false) @map("include_clients")
@@ -710,7 +687,7 @@ model Notification {
 
 model Activity {
   id             Int      @id @default(autoincrement())
-  organizationId Int      @map("organization_id")
+  organizationId String   @map("organization_id")
   projectId      Int?     @map("project_id")
   actorId        String   @map("actor_id")
   action         String
@@ -736,7 +713,7 @@ model Activity {
 
 model ProjectTemplate {
   id             Int       @id @default(autoincrement())
-  organizationId Int       @map("organization_id")
+  organizationId String    @map("organization_id")
   name           String
   description    String?
   createdById    String    @map("created_by_id")
@@ -811,6 +788,8 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  activeOrganizationId String?
+
   @@unique([token])
   @@index([userId])
   @@map("session")
@@ -848,4 +827,140 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model Organization {
+  id          String  @id
+  name        String
+  slug        String
+  logo        String?
+  description String?
+  metadata    String?
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  projects         Project[]
+  tasks            Task[]
+  taskDependencies TaskDependency[]
+  milestones       Milestone[]
+  comments         Comment[]
+  attachments      Attachment[]
+  conversations    Conversation[]
+  activities       Activity[]
+  projectTemplates ProjectTemplate[]
+
+  members           Member[]
+  invitations       Invitation[]
+  teams             Team[]
+  organizationRoles OrganizationRole[]
+  timeEntries       TimeEntry[]
+  clients           Client[]
+  // clientInvitations ClientInvitation[]
+
+  @@unique([slug])
+  @@index([deletedAt])
+  @@map("organization")
+}
+
+model OrganizationRole {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  role       String
+  permission String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+}
+
+model Member {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("member")
+  createdAt      DateTime
+
+  @@index([organizationId])
+  @@index([userId])
+  @@map("member")
+}
+
+model Invitation {
+  id             String   @id
+  organizationId String
+  teamId         String?
+  email          String
+  role           String?
+  status         String   @default("pending")
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  inviterId      String
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  team         Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("invitation")
+}
+
+model Plan {
+  id          String  @id @default(cuid())
+  name        String  @unique // e.g., "FREE", "PRO", "ENTERPRISE"
+  displayName String  @map("display_name")
+  slug        String  @unique
+  description String?
+  price       Decimal @db.Decimal(10, 2)
+  interval    String // e.g., "month", "year", "lifetime"
+
+  // --- Plan Features & Limits ---
+  maxOrgs     Int @default(1) @map("max_orgs")
+  maxTeams    Int @default(1) @map("max_teams")
+  maxMembers  Int @default(5) @map("max_members")
+  maxProjects Int @default(10) @map("max_projects")
+  maxStorage  Int @default(2) @map("max_storage") // e.g., storage in GB
+
+  // Optional: If you want extreme flexibility instead of hardcoded columns
+  // features    Json?   
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  subscriptions Subscription[]
+
+  @@index([deletedAt])
+  @@map("plan")
+}
+
+model Subscription {
+  id             String   @id
+  planId         String   @map("plan_id")
+  referenceId    String   @map("reference_id")
+  referenceModel String   @map("reference_model")
+  status         String
+  periodStart    DateTime @map("period_start")
+  periodEnd      DateTime @map("period_end")
+
+  cancelAtPeriodEnd Boolean   @map("cancel_at_period_end")
+  cancelAt          DateTime? @map("cancel_at")
+  canceledAt        DateTime? @map("canceled_at")
+  endedAt           DateTime? @map("ended_at")
+  trialStart        DateTime? @map("trial_start")
+  trialEnd          DateTime? @map("trial_end")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([referenceId, referenceModel])
+  @@index([planId])
+  @@map("subscription")
 }

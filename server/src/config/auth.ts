@@ -1,7 +1,8 @@
-import prisma from "@/lib/prismaClient.js";
+import prisma from "../lib/prismaClient.js";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { organization } from "better-auth/plugins";
+import ac from "./permissions.js";
 
 const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
@@ -48,6 +49,59 @@ const auth = betterAuth({
   //   },
 
   trustedOrigins: [process.env.FRONTEND_URL!],
+
+  plugins: [
+    organization({
+      schema: {
+        organization: {
+          additionalFields: {
+            description: {
+              type: "string",
+              required: false,
+              input: true,
+            },
+            updatedAt: {
+              type: "date",
+              required: false,
+              input: false,
+            },
+            deletedAt: {
+              type: "date",
+              required: false,
+              input: false,
+            },
+          },
+        },
+        team: {
+          additionalFields: {
+            description: {
+              type: "string",
+              required: false,
+              input: true,
+            },
+            slug: {
+              type: "string",
+              required: true,
+              input: true,
+            },
+            deletedAt: {
+              type: "date",
+              required: false,
+              input: false,
+            },
+          },
+        },
+      },
+      teams: {
+        enabled: true,
+      },
+
+      ac: ac,
+      dynamicAccessControl: {
+        enabled: true,
+      },
+    }),
+  ],
 });
 
 export default auth;

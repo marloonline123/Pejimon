@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import prisma from "@/lib/prismaClient.js";
+import crypto from "crypto";
 import type {
   TeamSchema,
   TeamQuerySchema,
@@ -25,7 +26,7 @@ export const index = async (
       prisma.team.findMany({
         where,
         include: {
-          teamUsers: {
+          teamMembers: {
             include: {
               user: true,
             },
@@ -71,6 +72,7 @@ export const store = async (
       } else {
         const newOrg = await prisma.organization.create({
           data: {
+            id: crypto.randomUUID(),
             name: "Default Organization",
             slug: "default-organization",
           },
@@ -82,7 +84,7 @@ export const store = async (
     const managerId = req.body.managerId || req.body.teamManagerId;
     const userIds = (req.body.userIds || []).filter((id) => id !== managerId);
 
-    const teamUsersCreate: { userId: number; role: string }[] = [];
+    const teamUsersCreate: { userId: string; role: string }[] = [];
     if (managerId) {
       teamUsersCreate.push({ userId: managerId, role: "MANAGER" });
     }
@@ -92,18 +94,19 @@ export const store = async (
 
     const team = await prisma.team.create({
       data: {
+        id: crypto.randomUUID(),
         name: req.body.name,
         description: req.body.description ?? null,
         slug: req.body.name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now().toString().slice(-4),
         organizationId,
         ...(teamUsersCreate.length > 0 && {
-          teamUsers: {
+          teamMembers: {
             create: teamUsersCreate,
           },
         }),
       },
       include: {
-        teamUsers: {
+        teamMembers: {
           include: { user: true },
         },
       },
@@ -133,7 +136,7 @@ export const show = async (req: Request, res: Response): Promise<void> => {
         slug: slug,
       },
       include: {
-        teamUsers: {
+        teamMembers: {
           include: { user: true },
         },
         projectTeams: {
@@ -168,13 +171,13 @@ export const update = async (req: Request, res: Response): Promise<void> => {
     const userIds = req.body.userIds;
 
     if (userIds !== undefined || managerId !== undefined) {
-      await prisma.teamUser.deleteMany({
+      await prisma.teamMember.deleteMany({
         where: {
           teamId: existing.id,
         },
       });
 
-      const teamUsersCreate: { userId: number; role: string }[] = [];
+      const teamUsersCreate: { userId: string; role: string }[] = [];
       if (managerId) {
         teamUsersCreate.push({ userId: managerId, role: "MANAGER" });
       }
@@ -187,7 +190,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
       }
 
       if (teamUsersCreate.length > 0) {
-        await prisma.teamUser.createMany({
+        await prisma.teamMember.createMany({
           data: teamUsersCreate.map((tu) => ({
             teamId: existing.id,
             userId: tu.userId,
@@ -206,7 +209,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
         description: req.body.description ?? null,
       },
       include: {
-        teamUsers: {
+        teamMembers: {
           include: { user: true },
         },
       },

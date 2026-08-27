@@ -22,9 +22,9 @@ const taskSchema = z.object({
     points: z.number().int().optional(),
     estimatedHours: z.number().optional(),
     projectId: z.number().int(),
-    authorId: z.number().int().optional(),
-    assignedUserId: z.number().int().optional(),
-    assignedUserIds: z.array(z.number().int()).optional(),
+    authorId: z.string().optional(),
+    assignedUserId: z.string().optional(),
+    assignedUserIds: z.array(z.string()).optional(),
 });
 export const taskQuerySchema = z.object({
     projectSlug: z.string().optional(),

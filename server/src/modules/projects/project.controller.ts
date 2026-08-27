@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import prisma from "@/lib/prismaClient.js";
+import crypto from "crypto";
 import type { ProjectSchema, ProjectQuerySchema } from "./project.schema.js";
 
 export const index = async (
@@ -72,6 +73,7 @@ export const store = async (
       } else {
         const newOrg = await prisma.organization.create({
           data: {
+            id: crypto.randomUUID(),
             name: "Default Organization",
             slug: "default-organization",
           },
@@ -88,12 +90,12 @@ export const store = async (
         startDate: req.body.startDate,
         endDate: req.body.endDate,
         slug: req.body.name.toLowerCase().replace(/\s+/g, "-"),
-        createdById: 1, // TODO: Replace with authenticated user ID
+        createdById: "user-1", // TODO: Replace with authenticated user ID
         organizationId,
         ...(req.body.teamIds &&
           req.body.teamIds.length > 0 && {
             projectTeams: {
-              create: req.body.teamIds.map((teamId: number) => ({
+              create: req.body.teamIds.map((teamId: string) => ({
                 team: { connect: { id: teamId } },
               })),
             },
@@ -179,7 +181,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
         slug: req.body.name ? req.body.name.toLowerCase().replace(/\s+/g, "-") : undefined,
         ...(req.body.teamIds && {
           projectTeams: {
-            create: req.body.teamIds.map((teamId: number) => ({
+            create: req.body.teamIds.map((teamId: string) => ({
               team: { connect: { id: teamId } },
             })),
           },

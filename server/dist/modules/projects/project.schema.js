@@ -14,8 +14,8 @@ const projectSchema = z.object({
     status: ProjectStatusEnum,
     startDate: z.coerce.date(),
     endDate: z.coerce.date(),
-    organizationId: z.number().int().optional(),
-    teamIds: z.array(z.number()).optional(),
+    organizationId: z.string().optional(),
+    teamIds: z.array(z.string()).optional(),
 });
 export const projectQuerySchema = z.object({
     search: z.string().optional(),

@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "email": "clientpartner@acme.com",
     "tokenHash": "client_inv_hash_9876",
     "expiresAt": "2026-12-31T23:59:59.000Z"

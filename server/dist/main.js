@@ -9,7 +9,7 @@ import taskRouter from "./modules/tasks/task.routes.js";
 import teamRouter from "./modules/teams/team.routes.js";
 import userRouter from "./modules/users/user.routes.js";
 import { toNodeHandler } from "better-auth/node";
-import auth from "./lib/auth.js";
+import auth from "./config/auth.js";
 dotenv.config();
 const app = Express();
 // Middleware
@@ -26,8 +26,7 @@ app.use(Express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 // Routing
-app.get("/", (req, res, next) => {
-    console.log("Server is running");
+app.get("/health", (req, res, next) => {
     res.send("Server is running");
 });
 app.use("/projects", projectRouter);

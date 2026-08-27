@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "email": "candidate@example.com",
     "tokenHash": "inv_token_hash_alpha",
     "invitedById": "user-1",

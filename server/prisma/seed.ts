@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import "dotenv/config";
-import prisma from "../src/lib/prismaClient.js";
+import prisma from "../src/lib/prismaClient.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,9 +11,12 @@ const __dirname = path.dirname(__filename);
 const orderedFileNames = [
   "user.json",
   "account.json",
+  "plan.json",
   "organization.json",
-  "organizationMember.json",
-  "organizationInvitation.json",
+  "organizationRole.json",
+  "member.json",
+  "invitation.json",
+  "subscription.json",
   "team.json",
   "teamUser.json",
   "project.json",
@@ -28,7 +31,6 @@ const orderedFileNames = [
   "timeEntry.json",
   "client.json",
   "projectClient.json",
-  "clientInvitation.json",
   "clientApproval.json",
   "conversation.json",
   "conversationMember.json",
@@ -84,7 +86,9 @@ async function seedAllData(fileNames: string[]) {
       for (const item of jsonData) {
         await model.create({ data: item });
       }
-      console.log(`   ✅ Seeded ${modelName} (${jsonData.length} records) from ${fileName}`);
+      console.log(
+        `   ✅ Seeded ${modelName} (${jsonData.length} records) from ${fileName}`,
+      );
     } catch (error) {
       console.error(`   ❌ Error seeding ${modelName}:`, error);
       throw error;

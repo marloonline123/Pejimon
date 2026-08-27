@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "projectId": 1,
     "milestoneId": 1,
     "name": "Design Database Schema",
@@ -18,7 +18,7 @@
   },
   {
     "id": 2,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "projectId": 1,
     "milestoneId": 2,
     "name": "Implement Better-Auth Flow",
@@ -30,12 +30,12 @@
     "startDate": "2026-08-16T00:00:00.000Z",
     "dueDate": "2026-08-30T00:00:00.000Z",
     "points": 13,
-    "estimatedHours": 32.0,
+    "estimatedHours": 32,
     "authorId": "user-1"
   },
   {
     "id": 3,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "projectId": 1,
     "milestoneId": 2,
     "name": "Build Kanban Board & Task Grid",
@@ -47,12 +47,12 @@
     "startDate": "2026-09-01T00:00:00.000Z",
     "dueDate": "2026-09-20T00:00:00.000Z",
     "points": 5,
-    "estimatedHours": 18.0,
+    "estimatedHours": 18,
     "authorId": "user-2"
   },
   {
     "id": 4,
-    "organizationId": 1,
+    "organizationId": "org-1",
     "projectId": 1,
     "milestoneId": 2,
     "name": "Setup CI/CD Pipeline & Automated Tests",
@@ -64,7 +64,7 @@
     "startDate": "2026-08-20T00:00:00.000Z",
     "dueDate": "2026-09-05T00:00:00.000Z",
     "points": 5,
-    "estimatedHours": 12.0,
+    "estimatedHours": 12,
     "authorId": "user-4"
   }
 ]
