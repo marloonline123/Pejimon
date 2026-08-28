@@ -1,12 +1,29 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
-import { Project, Task, Team, ApiResponse } from "../types";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import {
+  Project,
+  Task,
+  Team,
+  ApiResponse,
+  Plan,
+  Subscription,
+  Organization,
+} from "../types";
 import { baseQueryWithToast } from "./base-query";
 
 export const api = createApi({
   baseQuery: baseQueryWithToast,
   reducerPath: "api",
-  tagTypes: ["Project", "Projects", "Team", "Teams", "Tasks"],
+  tagTypes: [
+    "Project",
+    "Projects",
+    "Team",
+    "Teams",
+    "Tasks",
+    "Plans",
+    "Subscription",
+    "Organizations",
+    "User",
+  ],
   endpoints: (builder) => ({
     getProjects: builder.query<
       ApiResponse<Project[]>,
@@ -166,6 +183,41 @@ export const api = createApi({
     getUsers: builder.query<ApiResponse<any[]>, void>({
       query: () => `/users`,
     }),
+    getMe: builder.query<ApiResponse<any>, void>({
+      query: () => `/users/me`,
+      providesTags: ["User"],
+    }),
+    getPlans: builder.query<ApiResponse<Plan[]>, void>({
+      query: () => `/subscriptions/plans`,
+      providesTags: ["Plans"],
+    }),
+    getMySubscription: builder.query<ApiResponse<Subscription | null>, void>({
+      query: () => `/subscriptions/my`,
+      providesTags: ["Subscription"],
+    }),
+    subscribe: builder.mutation<ApiResponse<Subscription>, { planId: string }>({
+      query: (body) => ({
+        url: `/subscriptions/subscribe`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Subscription", "User"],
+    }),
+    getOrganizations: builder.query<ApiResponse<Organization[]>, void>({
+      query: () => `/organizations`,
+      providesTags: ["Organizations"],
+    }),
+    createOrganization: builder.mutation<
+      ApiResponse<Organization>,
+      FormData | Partial<Organization>
+    >({
+      query: (body) => ({
+        url: `/organizations`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Organizations", "User"],
+    }),
   }),
 });
 
@@ -186,4 +238,10 @@ export const {
   useUpdateTeamMutation,
   useDeleteTeamMutation,
   useGetUsersQuery,
+  useGetMeQuery,
+  useGetPlansQuery,
+  useGetMySubscriptionQuery,
+  useSubscribeMutation,
+  useGetOrganizationsQuery,
+  useCreateOrganizationMutation,
 } = api;

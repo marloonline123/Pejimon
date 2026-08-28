@@ -98,9 +98,50 @@ export interface Attachment {
     createdAt: string;
 }
 
+export interface Plan {
+    id: string;
+    name: string;
+    displayName: string;
+    slug: string;
+    description?: string | null;
+    price: number;
+    interval: string;
+    features?: string[] | string | null;
+    status?: string | null;
+}
+
+export interface Subscription {
+    id: string;
+    planId: string;
+    referenceId: string;
+    referenceModel: string;
+    status: string;
+    periodStart: string;
+    periodEnd: string;
+    cancelAtPeriodEnd: boolean;
+    plan?: Plan;
+}
+
+export interface Organization {
+    id: string;
+    name: string;
+    slug: string;
+    logo?: string | null;
+    description?: string | null;
+    metadata?: string | null;
+    createdAt?: string;
+}
+
 export interface ApiResponse<T> {
     success: boolean;
     data: T;
+    message?: string;
+    flash?: {
+        success?: string;
+        error?: string;
+        info?: string;
+        warning?: string;
+    };
     meta?: {
         total: number;
         page: number;

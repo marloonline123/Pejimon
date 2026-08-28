@@ -35,6 +35,22 @@ declare const auth: import("better-auth").Auth<{
                         username: string;
                     };
                 }>;
+                after: (user: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    email: string;
+                    emailVerified: boolean;
+                    name: string;
+                    image?: string | null | undefined;
+                } & Record<string, unknown>) => Promise<void>;
+            };
+        };
+        team: {
+            create: {
+                before: (team: any) => Promise<{
+                    data: any;
+                }>;
             };
         };
     };
@@ -84,121 +100,7 @@ declare const auth: import("better-auth").Auth<{
                 };
             };
             teams: {
-                enabled: true;
-            };
-            ac: {
-                newRole<const TRoleStatements extends import("better-auth/plugins").Statements>(statements: import("better-auth/plugins").RoleInput<{
-                    readonly organization: readonly ["create", "read", "update", "delete", "share"];
-                    readonly project: readonly ["create", "read", "update", "delete", "share"];
-                    readonly user: readonly ["read", "update", "delete", "share"];
-                    readonly team: readonly ["create", "read", "update", "delete", "share"];
-                    readonly task: readonly ["create", "read", "update", "delete", "share"];
-                    readonly milestone: readonly ["create", "read", "update", "delete", "share"];
-                    readonly comment: readonly ["create", "read", "update", "delete", "share"];
-                    readonly attachment: readonly ["create", "read", "update", "delete", "share"];
-                    readonly timeEntry: readonly ["create", "read", "update", "delete", "share"];
-                    readonly client: readonly ["create", "read", "update", "delete", "share"];
-                    readonly conversation: readonly ["create", "read", "update", "delete", "share"];
-                    readonly message: readonly ["create", "read", "update", "delete", "share"];
-                    readonly notification: readonly ["read", "update", "delete", "share"];
-                    readonly activity: readonly ["read", "update", "delete", "share"];
-                    readonly projectTemplate: readonly ["create", "read", "update", "delete", "share"];
-                    readonly projectUser: readonly ["create", "read", "update", "delete", "share"];
-                    readonly taskAssignment: readonly ["create", "read", "update", "delete", "share"];
-                    readonly conversationMember: readonly ["create", "read", "update", "delete", "share"];
-                    readonly member: readonly ["read", "update", "delete", "share"];
-                    readonly invitation: readonly ["create", "read", "update", "delete", "share"];
-                }, TRoleStatements>): import("better-auth/plugins").Role<import("better-auth/plugins").ExactRoleStatements<TRoleStatements>, {
-                    readonly organization: readonly ["create", "read", "update", "delete", "share"];
-                    readonly project: readonly ["create", "read", "update", "delete", "share"];
-                    readonly user: readonly ["read", "update", "delete", "share"];
-                    readonly team: readonly ["create", "read", "update", "delete", "share"];
-                    readonly task: readonly ["create", "read", "update", "delete", "share"];
-                    readonly milestone: readonly ["create", "read", "update", "delete", "share"];
-                    readonly comment: readonly ["create", "read", "update", "delete", "share"];
-                    readonly attachment: readonly ["create", "read", "update", "delete", "share"];
-                    readonly timeEntry: readonly ["create", "read", "update", "delete", "share"];
-                    readonly client: readonly ["create", "read", "update", "delete", "share"];
-                    readonly conversation: readonly ["create", "read", "update", "delete", "share"];
-                    readonly message: readonly ["create", "read", "update", "delete", "share"];
-                    readonly notification: readonly ["read", "update", "delete", "share"];
-                    readonly activity: readonly ["read", "update", "delete", "share"];
-                    readonly projectTemplate: readonly ["create", "read", "update", "delete", "share"];
-                    readonly projectUser: readonly ["create", "read", "update", "delete", "share"];
-                    readonly taskAssignment: readonly ["create", "read", "update", "delete", "share"];
-                    readonly conversationMember: readonly ["create", "read", "update", "delete", "share"];
-                    readonly member: readonly ["read", "update", "delete", "share"];
-                    readonly invitation: readonly ["create", "read", "update", "delete", "share"];
-                }>;
-                statements: {
-                    readonly organization: readonly ["create", "read", "update", "delete", "share"];
-                    readonly project: readonly ["create", "read", "update", "delete", "share"];
-                    readonly user: readonly ["read", "update", "delete", "share"];
-                    readonly team: readonly ["create", "read", "update", "delete", "share"];
-                    readonly task: readonly ["create", "read", "update", "delete", "share"];
-                    readonly milestone: readonly ["create", "read", "update", "delete", "share"];
-                    readonly comment: readonly ["create", "read", "update", "delete", "share"];
-                    readonly attachment: readonly ["create", "read", "update", "delete", "share"];
-                    readonly timeEntry: readonly ["create", "read", "update", "delete", "share"];
-                    readonly client: readonly ["create", "read", "update", "delete", "share"];
-                    readonly conversation: readonly ["create", "read", "update", "delete", "share"];
-                    readonly message: readonly ["create", "read", "update", "delete", "share"];
-                    readonly notification: readonly ["read", "update", "delete", "share"];
-                    readonly activity: readonly ["read", "update", "delete", "share"];
-                    readonly projectTemplate: readonly ["create", "read", "update", "delete", "share"];
-                    readonly projectUser: readonly ["create", "read", "update", "delete", "share"];
-                    readonly taskAssignment: readonly ["create", "read", "update", "delete", "share"];
-                    readonly conversationMember: readonly ["create", "read", "update", "delete", "share"];
-                    readonly member: readonly ["read", "update", "delete", "share"];
-                    readonly invitation: readonly ["create", "read", "update", "delete", "share"];
-                };
-            };
-            dynamicAccessControl: {
-                enabled: true;
-            };
-        }> & import("better-auth/plugins").TeamEndpoints<{
-            schema: {
-                organization: {
-                    additionalFields: {
-                        description: {
-                            type: "string";
-                            required: false;
-                            input: true;
-                        };
-                        updatedAt: {
-                            type: "date";
-                            required: false;
-                            input: false;
-                        };
-                        deletedAt: {
-                            type: "date";
-                            required: false;
-                            input: false;
-                        };
-                    };
-                };
-                team: {
-                    additionalFields: {
-                        description: {
-                            type: "string";
-                            required: false;
-                            input: true;
-                        };
-                        slug: {
-                            type: "string";
-                            required: true;
-                            input: true;
-                        };
-                        deletedAt: {
-                            type: "date";
-                            required: false;
-                            input: false;
-                        };
-                    };
-                };
-            };
-            teams: {
-                enabled: true;
+                enabled: false;
             };
             ac: {
                 newRole<const TRoleStatements extends import("better-auth/plugins").Statements>(statements: import("better-auth/plugins").RoleInput<{
@@ -312,7 +214,7 @@ declare const auth: import("better-auth").Auth<{
                 };
             };
             teams: {
-                enabled: true;
+                enabled: false;
             };
             ac: {
                 newRole<const TRoleStatements extends import("better-auth/plugins").Statements>(statements: import("better-auth/plugins").RoleInput<{
@@ -427,7 +329,7 @@ declare const auth: import("better-auth").Auth<{
                 };
             };
             teams: {
-                enabled: true;
+                enabled: false;
             };
             ac: {
                 newRole<const TRoleStatements extends import("better-auth/plugins").Statements>(statements: import("better-auth/plugins").RoleInput<{
@@ -521,7 +423,6 @@ declare const auth: import("better-auth").Auth<{
                 inviterId: string;
                 expiresAt: Date;
                 createdAt: Date;
-                teamId?: string | undefined;
             };
             Member: {
                 id: string;
@@ -529,7 +430,6 @@ declare const auth: import("better-auth").Auth<{
                 role: "admin" | "member" | "owner";
                 createdAt: Date;
                 userId: string;
-                teamId?: string | undefined;
                 user: {
                     id: string;
                     email: string;
@@ -537,22 +437,8 @@ declare const auth: import("better-auth").Auth<{
                     image?: string | undefined;
                 };
             };
-            Team: {
-                id: string;
-                name: string;
-                organizationId: string;
-                createdAt: Date;
-                updatedAt?: Date | undefined;
-                description?: string;
-                slug: string;
-                deletedAt?: Date;
-            };
-            TeamMember: {
-                id: string;
-                teamId: string;
-                userId: string;
-                createdAt: Date;
-            };
+            Team: never;
+            TeamMember: never;
             ActiveOrganization: {
                 members: {
                     id: string;
@@ -560,7 +446,6 @@ declare const auth: import("better-auth").Auth<{
                     role: "admin" | "member" | "owner";
                     createdAt: Date;
                     userId: string;
-                    teamId?: string | undefined;
                     user: {
                         id: string;
                         email: string;
@@ -577,17 +462,6 @@ declare const auth: import("better-auth").Auth<{
                     inviterId: string;
                     expiresAt: Date;
                     createdAt: Date;
-                    teamId?: string | undefined;
-                }[];
-                teams: {
-                    id: string;
-                    name: string;
-                    organizationId: string;
-                    createdAt: Date;
-                    updatedAt?: Date | undefined;
-                    description?: string;
-                    slug: string;
-                    deletedAt?: Date;
                 }[];
             } & {
                 id: string;
@@ -704,7 +578,7 @@ declare const auth: import("better-auth").Auth<{
                 };
             };
             teams: {
-                enabled: true;
+                enabled: false;
             };
             ac: {
                 newRole<const TRoleStatements extends import("better-auth/plugins").Statements>(statements: import("better-auth/plugins").RoleInput<{
@@ -777,6 +651,87 @@ declare const auth: import("better-auth").Auth<{
                 enabled: true;
             };
         }>;
+    }, {
+        id: "custom-session";
+        version: string;
+        hooks: {
+            after: {
+                matcher: (ctx: import("better-auth").HookEndpointContext) => boolean;
+                handler: import("better-auth").Middleware<import("better-auth").MiddlewareOptions, (inputContext: import("better-auth").MiddlewareInputContext<import("better-auth").MiddlewareOptions>) => Promise<{
+                    user: import("../modules/users/user.dto.js").UserSessionDto;
+                    session: {
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        userId: string;
+                        expiresAt: Date;
+                        token: string;
+                        ipAddress?: string | null | undefined;
+                        userAgent?: string | null | undefined;
+                    };
+                }[] | undefined>>;
+            }[];
+        };
+        endpoints: {
+            getSession: import("better-auth").StrictEndpoint<"/get-session", {
+                method: "GET";
+                query: import("better-auth").ZodOptional<import("better-auth").ZodObject<{
+                    disableCookieCache: import("better-auth").ZodOptional<import("better-auth").ZodCoercedBoolean<unknown>>;
+                    disableRefresh: import("better-auth").ZodOptional<import("better-auth").ZodCoercedBoolean<unknown>>;
+                }, import("zod/v4/core").$strip>>;
+                metadata: {
+                    CUSTOM_SESSION: boolean;
+                    openapi: {
+                        description: string;
+                        responses: {
+                            "200": {
+                                description: string;
+                                content: {
+                                    "application/json": {
+                                        schema: {
+                                            type: "array";
+                                            nullable: boolean;
+                                            items: {
+                                                $ref: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                requireHeaders: true;
+            }, {
+                user: import("../modules/users/user.dto.js").UserSessionDto;
+                session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined;
+                    userAgent?: string | null | undefined;
+                };
+            } | null>;
+        };
+        $Infer: {
+            Session: {
+                user: import("../modules/users/user.dto.js").UserSessionDto;
+                session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined;
+                    userAgent?: string | null | undefined;
+                };
+            };
+        };
+        options: import("better-auth/plugins").CustomSessionPluginOptions | undefined;
     }];
 }>;
 export default auth;

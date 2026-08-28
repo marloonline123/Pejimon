@@ -11,15 +11,17 @@ type Props = {
   children: React.ReactNode;
 };
 
-const AUTH_ROUTES = ["/login", "/register"];
+const STANDALONE_ROUTES = ["/login", "/register", "/subscription", "/onboarding", "/select-organization"];
 
 export default function DashboardWrapper({ children }: Props) {
   useThemeToggle(); // Initializes theme sync on mount
   const pathname = usePathname();
 
-  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+  const isStandaloneRoute = STANDALONE_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 
-  if (isAuthRoute) {
+  if (isStandaloneRoute) {
     return (
       <div className="min-h-screen bg-alice-blue-900 text-ink-black-200 dark:bg-ink-black-100 dark:text-alice-blue-900">
         {children}
