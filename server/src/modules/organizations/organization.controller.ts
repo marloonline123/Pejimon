@@ -193,6 +193,17 @@ export const store = async (
           },
         });
       }
+
+      // Update lastActiveOrganizationId in user's Account record
+      const userId = res.locals?.session?.user?.id;
+      if (userId && orgResult.id) {
+        await prisma.account.updateMany({
+          where: { userId },
+          data: {
+            lastActiveOrganizationId: orgResult.id,
+          },
+        });
+      }
     }
 
     res.status(201).json({

@@ -53,6 +53,53 @@ declare const auth: import("better-auth").Auth<{
                 }>;
             };
         };
+        session: {
+            create: {
+                before: (session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined;
+                    userAgent?: string | null | undefined;
+                } & Record<string, unknown>) => Promise<{
+                    data: {
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        userId: string;
+                        expiresAt: Date;
+                        token: string;
+                        ipAddress?: string | null | undefined;
+                        userAgent?: string | null | undefined;
+                    } & Record<string, unknown>;
+                }>;
+                after: (session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined;
+                    userAgent?: string | null | undefined;
+                } & Record<string, unknown>) => Promise<void>;
+            };
+            update: {
+                after: (session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined;
+                    userAgent?: string | null | undefined;
+                } & Record<string, unknown>) => Promise<void>;
+            };
+        };
     };
     trustedOrigins: string[];
     plugins: [{

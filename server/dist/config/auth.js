@@ -80,8 +80,129 @@ const auth = betterAuth({
                 },
             },
         },
+        session: {
+            create: {
+                before: async (session) => {
+                    if (session.userId) {
+                        // 1. Check if user has lastActiveOrganizationId in account
+                        const account = await prisma.account.findFirst({
+                            where: {
+                                userId: session.userId,
+                                lastActiveOrganizationId: { not: null },
+                            },
+                        });
+                        if (account?.lastActiveOrganizationId) {
+                            const isMember = await prisma.member.findFirst({
+                                where: {
+                                    userId: session.userId,
+                                    organizationId: account.lastActiveOrganizationId,
+                                },
+                            });
+                            if (isMember) {
+                                return {
+                                    data: {
+                                        ...session,
+                                        activeOrganizationId: account.lastActiveOrganizationId,
+                                    },
+                                };
+                            }
+                        }
+                        // 2. If no valid lastActiveOrganizationId, pick user's first membership
+                        const firstMembership = await prisma.member.findFirst({
+                            where: { userId: session.userId },
+                            orderBy: { createdAt: "asc" },
+                        });
+                        if (firstMembership) {
+                            await prisma.account.updateMany({
+                                where: { userId: session.userId },
+                                data: {
+                                    lastActiveOrganizationId: firstMembership.organizationId,
+                                },
+                            });
+                            return {
+                                data: {
+                                    ...session,
+                                    activeOrganizationId: firstMembership.organizationId,
+                                },
+                            };
+                        }
+                    }
+                    return {
+                        data: session,
+                    };
+                },
+                after: async (session) => {
+                    if (session.userId && session.id) {
+                        const sessionObj = session;
+                        let targetOrgId = sessionObj.activeOrganizationId;
+                        if (!targetOrgId) {
+                            const account = await prisma.account.findFirst({
+                                where: {
+                                    userId: session.userId,
+                                    lastActiveOrganizationId: { not: null },
+                                },
+                            });
+                            if (account?.lastActiveOrganizationId) {
+                                const isMember = await prisma.member.findFirst({
+                                    where: {
+                                        userId: session.userId,
+                                        organizationId: account.lastActiveOrganizationId,
+                                    },
+                                });
+                                if (isMember) {
+                                    targetOrgId = account.lastActiveOrganizationId;
+                                }
+                            }
+                            if (!targetOrgId) {
+                                const firstMembership = await prisma.member.findFirst({
+                                    where: { userId: session.userId },
+                                    orderBy: { createdAt: "asc" },
+                                });
+                                if (firstMembership) {
+                                    targetOrgId = firstMembership.organizationId;
+                                    await prisma.account.updateMany({
+                                        where: { userId: session.userId },
+                                        data: {
+                                            lastActiveOrganizationId: targetOrgId,
+                                        },
+                                    });
+                                }
+                            }
+                        }
+                        if (targetOrgId) {
+                            await prisma.session.update({
+                                where: { id: session.id },
+                                data: {
+                                    activeOrganizationId: targetOrgId,
+                                },
+                            }).catch(() => { });
+                            sessionObj.activeOrganizationId = targetOrgId;
+                            session.activeOrganizationId = targetOrgId;
+                        }
+                    }
+                },
+            },
+            update: {
+                after: async (session) => {
+                    const sessionObj = session;
+                    const activeOrgId = sessionObj.activeOrganizationId;
+                    if (activeOrgId && sessionObj.userId) {
+                        await prisma.account.updateMany({
+                            where: { userId: sessionObj.userId },
+                            data: {
+                                lastActiveOrganizationId: activeOrgId,
+                            },
+                        });
+                    }
+                },
+            },
+        },
     },
-    trustedOrigins: [process.env.FRONTEND_URL],
+    trustedOrigins: [
+        process.env.FRONTEND_URL || "http://localhost:3000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
     plugins: [
         organization({
             schema: {
@@ -154,11 +275,43 @@ const auth = betterAuth({
                 }),
             ]);
             const sessionData = session;
-            const activeOrgId = sessionData.activeOrganizationId ||
-                memberships[0]?.organizationId;
-            const activeMembership = memberships.find((m) => m.organizationId === activeOrgId) ||
-                memberships[0] ||
-                null;
+            let activeOrgId = sessionData.activeOrganizationId || null;
+            if (!activeOrgId && user.id) {
+                const account = await prisma.account.findFirst({
+                    where: { userId: user.id, lastActiveOrganizationId: { not: null } },
+                });
+                if (account?.lastActiveOrganizationId &&
+                    memberships.some((m) => m.organizationId === account.lastActiveOrganizationId)) {
+                    activeOrgId = account.lastActiveOrganizationId;
+                }
+                else if (memberships.length > 0) {
+                    activeOrgId = memberships[0].organizationId;
+                }
+                // Persist to session and account in database so they remain in sync
+                if (activeOrgId) {
+                    sessionData.activeOrganizationId = activeOrgId;
+                    session.activeOrganizationId = activeOrgId;
+                    if (session.id) {
+                        await Promise.all([
+                            prisma.session
+                                .update({
+                                where: { id: session.id },
+                                data: { activeOrganizationId: activeOrgId },
+                            })
+                                .catch(() => { }),
+                            prisma.account
+                                .updateMany({
+                                where: { userId: user.id },
+                                data: { lastActiveOrganizationId: activeOrgId },
+                            })
+                                .catch(() => { }),
+                        ]);
+                    }
+                }
+            }
+            const activeMembership = activeOrgId
+                ? memberships.find((m) => m.organizationId === activeOrgId) || null
+                : null;
             let rolePermissions = {};
             let roles = [];
             if (activeMembership) {

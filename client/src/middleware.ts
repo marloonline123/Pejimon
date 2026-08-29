@@ -1,4 +1,4 @@
-import { middleware } from "./middleware/index";
+import { middleware } from "./route-middleware/index";
 
 export default middleware;
 
