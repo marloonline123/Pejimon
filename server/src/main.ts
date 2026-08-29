@@ -19,6 +19,7 @@ import { toNodeHandler } from "better-auth/node";
 import auth from "@/config/auth.js";
 
 import path from "path";
+import { tenantMiddleware } from "./middleware/tenant.js";
 
 dotenv.config();
 
@@ -55,12 +56,14 @@ app.get("/health", (req: Request, res: Response, next: NextFunction) => {
   res.send("Server is running");
 });
 
-app.use("/projects", projectRouter);
-app.use("/tasks", taskRouter);
-app.use("/teams", teamRouter);
 app.use("/users", userRouter);
 app.use("/organizations", organizationRouter);
 app.use("/subscriptions", subscriptionRouter);
+
+// Tenant-scoped routes
+app.use("/projects", tenantMiddleware, projectRouter);
+app.use("/tasks", tenantMiddleware, taskRouter);
+app.use("/teams", tenantMiddleware, teamRouter);
 
 // Global error handling
 

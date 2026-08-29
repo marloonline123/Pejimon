@@ -45,7 +45,7 @@ export const api = createApi({
       providesTags: ["Projects"],
     }),
     getProjectBySlug: builder.query<ApiResponse<Project>, string>({
-      query: (projectSlug: string) => `/projects?slug=${projectSlug}`,
+      query: (projectSlug: string) => `/projects/${projectSlug}`,
       providesTags: ["Projects"],
     }),
     createProject: builder.mutation<ApiResponse<Project>, Partial<Project>>({
@@ -103,7 +103,7 @@ export const api = createApi({
       providesTags: ["Tasks"],
     }),
     getTaskBySlug: builder.query<ApiResponse<Task>, string>({
-      query: (taskSlug: string) => `/tasks?slug=${taskSlug}`,
+      query: (taskSlug: string) => `/tasks/${taskSlug}`,
       providesTags: ["Tasks"],
     }),
     createTask: builder.mutation<ApiResponse<Task>, Partial<Task>>({

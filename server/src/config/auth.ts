@@ -271,7 +271,7 @@ const auth = betterAuth({
         },
       },
       teams: {
-        enabled: false,
+        enabled: true,
       },
 
       ac: ac,
@@ -317,7 +317,7 @@ const auth = betterAuth({
           )
         ) {
           activeOrgId = account.lastActiveOrganizationId;
-        } else if (memberships.length > 0) {
+        } else if (memberships.length > 0 && memberships[0]) {
           activeOrgId = memberships[0].organizationId;
         }
 

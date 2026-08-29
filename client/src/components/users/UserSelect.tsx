@@ -22,20 +22,20 @@ import { useGetUsersQuery } from "@/state/api";
 import { User } from "@/types";
 
 interface UserSelectProps {
-  value: number; // Single user select for Team Manager
-  onChange: (value: number) => void;
+  value: string; // Single user select for Team Manager
+  onChange: (value: string) => void;
 }
 
 export function UserSelect({ value, onChange }: UserSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  
+
   // Assuming getUsers returns all users for now. If it's paginated, we would need page logic.
   const { data, isFetching } = useGetUsersQuery();
-  
+
   const users: User[] = data?.data || [];
 
-  const handleSelect = (userId: number) => {
+  const handleSelect = (userId: string) => {
     onChange(userId);
     setOpen(false);
   };
@@ -48,7 +48,7 @@ export function UserSelect({ value, onChange }: UserSelectProps) {
         className={cn(
           buttonVariants({ variant: "outline" }),
           "w-full justify-between min-h-[2.5rem] h-auto p-2 font-normal text-left",
-          !value && "text-muted-foreground"
+          !value && "text-muted-foreground",
         )}
         role="combobox"
         aria-expanded={open}

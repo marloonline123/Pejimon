@@ -2,41 +2,49 @@
   {
     "teamId": "team-1",
     "userId": "user-2",
+    "organizationId": "org-1",
     "role": "MANAGER"
   },
   {
     "teamId": "team-1",
     "userId": "user-1",
+    "organizationId": "org-1",
     "role": "MEMBER"
   },
   {
     "teamId": "team-1",
     "userId": "user-3",
+    "organizationId": "org-1",
     "role": "MEMBER"
   },
   {
     "teamId": "team-2",
     "userId": "user-1",
+    "organizationId": "org-1",
     "role": "MANAGER"
   },
   {
     "teamId": "team-2",
     "userId": "user-4",
+    "organizationId": "org-1",
     "role": "MEMBER"
   },
   {
     "teamId": "team-2",
     "userId": "user-5",
+    "organizationId": "org-1",
     "role": "MEMBER"
   },
   {
     "teamId": "team-3",
     "userId": "user-4",
+    "organizationId": "org-1",
     "role": "MANAGER"
   },
   {
     "teamId": "team-3",
     "userId": "user-2",
+    "organizationId": "org-1",
     "role": "MEMBER"
   }
 ]

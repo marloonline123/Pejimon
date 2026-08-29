@@ -53,7 +53,10 @@ export function DataFilters({
         />
       </div>
       {showStatusFilter && (
-        <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+        <Select
+          value={statusFilter}
+          onValueChange={(val) => onStatusFilterChange(val ?? "")}
+        >
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder={statusPlaceholder} />
           </SelectTrigger>

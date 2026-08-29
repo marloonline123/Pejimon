@@ -15,9 +15,7 @@ import { UserSelect } from "@/components/users/UserSelect";
 const teamSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters long"),
   description: z.string().optional(),
-  teamManagerId: z.number({
-    errorMap: () => ({ message: "Team Manager ID is required" }),
-  }),
+  managerId: z.string().min(1, "Team Manager is required"),
 });
 
 export type TeamFormValues = z.infer<typeof teamSchema>;
@@ -40,9 +38,11 @@ export function TeamForm({ initialData, onSubmit, isLoading }: TeamFormProps) {
     defaultValues: {
       name: initialData?.name || "",
       description: initialData?.description || "",
-      teamManagerId: initialData?.teamManagerId,
+      managerId: initialData?.managerId || "",
     },
   });
+
+  console.log("initial Datat: ", initialData);
 
   const onFormSubmit = async (data: TeamFormValues) => {
     try {
@@ -96,12 +96,12 @@ export function TeamForm({ initialData, onSubmit, isLoading }: TeamFormProps) {
         <Label>Team Manager</Label>
         <Controller
           control={control}
-          name="teamManagerId"
+          name="managerId"
           render={({ field }) => (
             <UserSelect value={field.value} onChange={field.onChange} />
           )}
         />
-        <InputError messages={errors.teamManagerId?.message} />
+        <InputError messages={errors.managerId?.message} />
       </div>
 
       {/* Actions */}

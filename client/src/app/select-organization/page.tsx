@@ -73,7 +73,7 @@ export default function SelectOrganizationPage() {
             </div>
           ) : (
             <div className="space-y-4 mb-8">
-              {organizations?.length > 0 ? (
+              {organizations && organizations.length > 0 ? (
                 <div className="grid gap-4">
                   {organizations?.map((org: any) => (
                     <button

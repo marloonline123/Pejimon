@@ -22,8 +22,8 @@ import { useGetTeamsQuery } from "@/state/api";
 import { Team } from "@/types";
 
 interface TeamSelectProps {
-  value: number[];
-  onChange: (value: number[]) => void;
+  value: (string | number)[];
+  onChange: (value: (string | number)[]) => void;
 }
 
 export function TeamSelect({ value = [], onChange }: TeamSelectProps) {
@@ -53,7 +53,7 @@ export function TeamSelect({ value = [], onChange }: TeamSelectProps) {
     setPage(1);
   }, [search]);
 
-  const observerRef = useRef<IntersectionObserver>();
+  const observerRef = useRef<IntersectionObserver | null>(null);
   const lastElementRef = (node: HTMLDivElement) => {
     if (isFetching) return;
     if (observerRef.current) observerRef.current.disconnect();
@@ -69,7 +69,7 @@ export function TeamSelect({ value = [], onChange }: TeamSelectProps) {
     if (node) observerRef.current.observe(node);
   };
 
-  const handleSelect = (teamId: number) => {
+  const handleSelect = (teamId: string | number) => {
     if (value.includes(teamId)) {
       onChange(value.filter((id) => id !== teamId));
     } else {

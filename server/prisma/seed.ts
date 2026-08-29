@@ -18,7 +18,7 @@ const orderedFileNames = [
   "invitation.json",
   "subscription.json",
   "team.json",
-  "teamUser.json",
+  "teamMember.json",
   "project.json",
   "projectTeam.json",
   "projectUser.json",
@@ -96,9 +96,52 @@ async function seedAllData(fileNames: string[]) {
   }
 }
 
+async function syncSequences() {
+  console.log("🔄 Syncing PostgreSQL sequences...");
+  const tables = [
+    "projects",
+    "teams",
+    "team_member",
+    "tasks",
+    "task_assignments",
+    "task_dependencies",
+    "milestones",
+    "comments",
+    "attachments",
+    "time_entries",
+    "clients",
+    "project_clients",
+    "client_approvals",
+    "conversations",
+    "conversation_members",
+    "messages",
+    "notifications",
+    "activities",
+    "project_templates",
+    "template_milestones",
+    "template_tasks",
+  ];
+
+  for (const table of tables) {
+    try {
+      await prisma.$executeRawUnsafe(`
+        SELECT setval(
+          pg_get_serial_sequence('"${table}"', 'id'),
+          COALESCE((SELECT MAX(id) FROM "${table}"), 0) + 1,
+          false
+        );
+      `);
+      console.log(`   Synced sequence for ${table}`);
+    } catch (e) {
+      // Table might not use a serial sequence
+    }
+  }
+}
+
 async function main() {
   await deleteAllData(orderedFileNames);
   await seedAllData(orderedFileNames);
+  await syncSequences();
   console.log("\n✨ Database seeding completed successfully!");
 }
 

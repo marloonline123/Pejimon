@@ -34,7 +34,7 @@ export default function checkActiveOrganization(
 
   const { user } = sessionData;
 
-  console.log("sessionDaata: ", sessionData);
+  // console.log("sessionDaata: ", sessionData);
 
   // If user has organizations, but no active organization is selected:
   // Must be redirected to /select-organization unless already there

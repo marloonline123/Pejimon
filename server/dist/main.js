@@ -13,6 +13,7 @@ import subscriptionRouter from "./modules/subscriptions/subscription.routes.js";
 import { toNodeHandler } from "better-auth/node";
 import auth from "./config/auth.js";
 import path from "path";
+import { tenantMiddleware } from "./middleware/tenant.js";
 dotenv.config();
 const app = Express();
 // Middleware
@@ -38,12 +39,13 @@ app.use("/uploads", Express.static(path.join(process.cwd(), "uploads")));
 app.get("/health", (req, res, next) => {
     res.send("Server is running");
 });
-app.use("/projects", projectRouter);
-app.use("/tasks", taskRouter);
-app.use("/teams", teamRouter);
 app.use("/users", userRouter);
 app.use("/organizations", organizationRouter);
 app.use("/subscriptions", subscriptionRouter);
+// Tenant-scoped routes
+app.use("/projects", tenantMiddleware, projectRouter);
+app.use("/tasks", tenantMiddleware, taskRouter);
+app.use("/teams", tenantMiddleware, teamRouter);
 // Global error handling
 app.use((err, req, res, next) => {
     console.error(err.stack);

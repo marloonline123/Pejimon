@@ -246,7 +246,7 @@ const auth = betterAuth({
                 },
             },
             teams: {
-                enabled: false,
+                enabled: true,
             },
             ac: ac,
             dynamicAccessControl: {
@@ -284,7 +284,7 @@ const auth = betterAuth({
                     memberships.some((m) => m.organizationId === account.lastActiveOrganizationId)) {
                     activeOrgId = account.lastActiveOrganizationId;
                 }
-                else if (memberships.length > 0) {
+                else if (memberships.length > 0 && memberships[0]) {
                     activeOrgId = memberships[0].organizationId;
                 }
                 // Persist to session and account in database so they remain in sync
