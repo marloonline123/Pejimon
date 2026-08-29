@@ -35,7 +35,10 @@ export function TaskFilters({
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
-      <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+      <Select
+        value={statusFilter}
+        onValueChange={(val) => onStatusFilterChange(val ?? "")}
+      >
         <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="Filter by status" />
         </SelectTrigger>

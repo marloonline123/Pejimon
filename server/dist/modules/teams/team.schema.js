@@ -3,8 +3,7 @@ const teamSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters long"),
     description: z.string().optional(),
     organizationId: z.string().optional(),
-    teamManagerId: z.string().optional(),
-    managerId: z.string().optional(),
+    managerId: z.string().nonempty("Manager is required"),
     userIds: z.array(z.string()).optional(),
 });
 export const teamQuerySchema = z.object({

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/state/hooks";
 import { collabse } from "@/state/slices/sidebar";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ import {
 import { usePathname } from "next/navigation";
 import { Button } from "../ui/button";
 import { useGetProjectsQuery } from "@/state/api";
+import OrganizationSwitcher from "./OrganizationSwitcher";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -96,6 +97,9 @@ export default function Sidebar() {
         </div>
 
         <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
+          {/* Org Switcher */}
+          <OrganizationSwitcher isCollapsed={isCollapsed} />
+
           {navigation.map((item) => {
             const isActive =
               pathname === item.href ||

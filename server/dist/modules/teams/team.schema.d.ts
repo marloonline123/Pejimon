@@ -3,8 +3,7 @@ declare const teamSchema: z.ZodObject<{
     name: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
     organizationId: z.ZodOptional<z.ZodString>;
-    teamManagerId: z.ZodOptional<z.ZodString>;
-    managerId: z.ZodOptional<z.ZodString>;
+    managerId: z.ZodString;
     userIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strip>;
 export declare const teamQuerySchema: z.ZodObject<{

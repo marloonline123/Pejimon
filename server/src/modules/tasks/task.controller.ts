@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import prisma from "@/lib/prismaClient.js";
+import { prismaTanentAware } from "@/lib/prismaClient.js";
 import type {
   TaskSchema,
   TaskQuerySchema,
@@ -19,7 +19,7 @@ export const index = async (
 
     let projectId: number | undefined = undefined;
     if (projectSlug) {
-      const project = await prisma.project.findFirst({
+      const project = await prismaTanentAware.project.findFirst({
         where: { slug: projectSlug },
         select: { id: true },
       });
@@ -44,7 +44,7 @@ export const index = async (
     }
 
     const [tasks, total] = await Promise.all([
-      prisma.task.findMany({
+      prismaTanentAware.task.findMany({
         where,
         include: {
           taskAssignments: {
@@ -56,7 +56,7 @@ export const index = async (
         take: limit,
         orderBy: { createdAt: "desc" },
       }),
-      prisma.task.count({ where }),
+      prismaTanentAware.task.count({ where }),
     ]);
 
     res.status(200).json({
@@ -83,7 +83,7 @@ export const store = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const project = await prisma.project.findUnique({
+    const project = await prismaTanentAware.project.findUnique({
       where: { id: Number(req.body.projectId) },
     });
 
@@ -92,11 +92,9 @@ export const store = async (
       return;
     }
 
-    const assignedUserIds =
-      req.body.assignedUserIds ||
-      (req.body.assignedUserId ? [req.body.assignedUserId] : []);
+    const userId = res.locals.user?.id as string;
 
-    const task = await prisma.task.create({
+    const task = await prismaTanentAware.task.create({
       data: {
         name: req.body.name,
         description: req.body.description || null,
@@ -107,28 +105,15 @@ export const store = async (
         dueDate: req.body.dueDate || null,
         points: req.body.points !== undefined ? Number(req.body.points) : null,
         estimatedHours:
-          req.body.estimatedHours !== undefined
-            ? req.body.estimatedHours
-            : null,
+          req.body.estimatedHours !== undefined ? req.body.estimatedHours : 0,
         projectId: project.id,
-        organizationId: project.organizationId,
-        authorId: req.body.authorId || project.createdById,
+        authorId: userId,
         slug:
           req.body.name.toLowerCase().replace(/\s+/g, "-") +
           "-" +
           Date.now().toString().slice(-4),
-        ...(assignedUserIds.length > 0 && {
-          taskAssignments: {
-            create: assignedUserIds.map((userId: string) => ({
-              userId: userId,
-            })),
-          },
-        }),
-      },
+      } as any,
       include: {
-        taskAssignments: {
-          include: { user: true },
-        },
         author: true,
       },
     });
@@ -151,7 +136,7 @@ export const store = async (
 export const show = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
-    const task = await prisma.task.findFirst({
+    const task = await prismaTanentAware.task.findFirst({
       where: {
         slug: slug,
       },
@@ -166,6 +151,15 @@ export const show = async (req: Request, res: Response): Promise<void> => {
         attachments: true,
       },
     });
+
+    if (!task) {
+      res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+      return;
+    }
+
     res.status(200).json({
       success: true,
       message: "Task fetched successfully",
@@ -183,23 +177,15 @@ export const show = async (req: Request, res: Response): Promise<void> => {
 export const update = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
-    const existing = await prisma.task.findFirst({ where: { slug } });
+    const existing = await prismaTanentAware.task.findFirst({
+      where: { slug },
+    });
     if (!existing) {
       res.status(404).json({ success: false, message: "Task not found" });
       return;
     }
 
-    const assignedUserIds =
-      req.body.assignedUserIds ||
-      (req.body.assignedUserId ? [req.body.assignedUserId] : undefined);
-
-    if (assignedUserIds !== undefined) {
-      await prisma.taskAssignment.deleteMany({
-        where: { taskId: existing.id },
-      });
-    }
-
-    const task = await prisma.task.update({
+    const task = await prismaTanentAware.task.update({
       where: {
         id: existing.id,
       },
@@ -213,14 +199,7 @@ export const update = async (req: Request, res: Response): Promise<void> => {
         dueDate: req.body.dueDate,
         points: req.body.points,
         estimatedHours: req.body.estimatedHours,
-        ...(assignedUserIds !== undefined && {
-          taskAssignments: {
-            create: assignedUserIds.map((userId: string) => ({
-              userId: userId,
-            })),
-          },
-        }),
-      },
+      } as any,
       include: {
         taskAssignments: {
           include: { user: true },
@@ -247,13 +226,15 @@ export const update = async (req: Request, res: Response): Promise<void> => {
 export const destroy = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug as string;
-    const existing = await prisma.task.findFirst({ where: { slug } });
+    const existing = await prismaTanentAware.task.findFirst({
+      where: { slug },
+    });
     if (!existing) {
       res.status(404).json({ success: false, message: "Task not found" });
       return;
     }
 
-    const task = await prisma.task.delete({
+    const task = await prismaTanentAware.task.delete({
       where: {
         id: existing.id,
       },

@@ -42,9 +42,6 @@ declare const taskSchema: z.ZodObject<{
     points: z.ZodOptional<z.ZodNumber>;
     estimatedHours: z.ZodOptional<z.ZodNumber>;
     projectId: z.ZodNumber;
-    authorId: z.ZodOptional<z.ZodString>;
-    assignedUserId: z.ZodOptional<z.ZodString>;
-    assignedUserIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, z.core.$strip>;
 export declare const taskQuerySchema: z.ZodObject<{
     projectSlug: z.ZodOptional<z.ZodString>;

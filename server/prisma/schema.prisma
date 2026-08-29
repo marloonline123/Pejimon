@@ -201,20 +201,23 @@ model Team {
 // // ============================================================
 
 model TeamMember {
-  userId        String  @map("user_id")
-  teamId        String  @map("team_id")
-  role          String // MANAGER, MEMBER
-  membershipKey String?
+  organizationId String  @map("organization_id")
+  userId         String  @map("user_id")
+  teamId         String  @map("team_id")
+  role           String // MANAGER, MEMBER
+  membershipKey  String?
 
   createdAt DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team         Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
 
-  @@id([userId, teamId])
+  @@id([organizationId, userId, teamId])
+  @@unique([organizationId, userId, teamId])
   @@index([userId])
   @@index([teamId])
-  @@map("team_user")
+  @@map("team_member")
 }
 
 // ============================================================
@@ -812,6 +815,8 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
+  lastActiveOrganizationId String?
+
   @@unique([issuer, accountId], map: "account_issuer_accountId_uidx")
   @@index([userId])
   @@map("account")
@@ -859,6 +864,7 @@ model Organization {
   timeEntries       TimeEntry[]
   clients           Client[]
   // clientInvitations ClientInvitation[]
+  teamMembers       TeamMember[]
 
   @@unique([slug])
   @@index([deletedAt])

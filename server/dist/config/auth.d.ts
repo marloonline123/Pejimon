@@ -35,6 +35,69 @@ declare const auth: import("better-auth").Auth<{
                         username: string;
                     };
                 }>;
+                after: (user: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    email: string;
+                    emailVerified: boolean;
+                    name: string;
+                    image?: string | null | undefined;
+                } & Record<string, unknown>) => Promise<void>;
+            };
+        };
+        team: {
+            create: {
+                before: (team: any) => Promise<{
+                    data: any;
+                }>;
+            };
+        };
+        session: {
+            create: {
+                before: (session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined;
+                    userAgent?: string | null | undefined;
+                } & Record<string, unknown>) => Promise<{
+                    data: {
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        userId: string;
+                        expiresAt: Date;
+                        token: string;
+                        ipAddress?: string | null | undefined;
+                        userAgent?: string | null | undefined;
+                    } & Record<string, unknown>;
+                }>;
+                after: (session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined;
+                    userAgent?: string | null | undefined;
+                } & Record<string, unknown>) => Promise<void>;
+            };
+            update: {
+                after: (session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined;
+                    userAgent?: string | null | undefined;
+                } & Record<string, unknown>) => Promise<void>;
             };
         };
     };
@@ -777,6 +840,87 @@ declare const auth: import("better-auth").Auth<{
                 enabled: true;
             };
         }>;
+    }, {
+        id: "custom-session";
+        version: string;
+        hooks: {
+            after: {
+                matcher: (ctx: import("better-auth").HookEndpointContext) => boolean;
+                handler: import("better-auth").Middleware<import("better-auth").MiddlewareOptions, (inputContext: import("better-auth").MiddlewareInputContext<import("better-auth").MiddlewareOptions>) => Promise<{
+                    user: import("../modules/users/user.dto.js").UserSessionDto;
+                    session: {
+                        id: string;
+                        createdAt: Date;
+                        updatedAt: Date;
+                        userId: string;
+                        expiresAt: Date;
+                        token: string;
+                        ipAddress?: string | null | undefined;
+                        userAgent?: string | null | undefined;
+                    };
+                }[] | undefined>>;
+            }[];
+        };
+        endpoints: {
+            getSession: import("better-auth").StrictEndpoint<"/get-session", {
+                method: "GET";
+                query: import("better-auth").ZodOptional<import("better-auth").ZodObject<{
+                    disableCookieCache: import("better-auth").ZodOptional<import("better-auth").ZodCoercedBoolean<unknown>>;
+                    disableRefresh: import("better-auth").ZodOptional<import("better-auth").ZodCoercedBoolean<unknown>>;
+                }, import("zod/v4/core").$strip>>;
+                metadata: {
+                    CUSTOM_SESSION: boolean;
+                    openapi: {
+                        description: string;
+                        responses: {
+                            "200": {
+                                description: string;
+                                content: {
+                                    "application/json": {
+                                        schema: {
+                                            type: "array";
+                                            nullable: boolean;
+                                            items: {
+                                                $ref: string;
+                                            };
+                                        };
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                requireHeaders: true;
+            }, {
+                user: import("../modules/users/user.dto.js").UserSessionDto;
+                session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined;
+                    userAgent?: string | null | undefined;
+                };
+            } | null>;
+        };
+        $Infer: {
+            Session: {
+                user: import("../modules/users/user.dto.js").UserSessionDto;
+                session: {
+                    id: string;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    userId: string;
+                    expiresAt: Date;
+                    token: string;
+                    ipAddress?: string | null | undefined;
+                    userAgent?: string | null | undefined;
+                };
+            };
+        };
+        options: import("better-auth/plugins").CustomSessionPluginOptions | undefined;
     }];
 }>;
 export default auth;

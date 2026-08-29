@@ -55,7 +55,7 @@ export function ProjectForm({
     defaultValues: {
       name: initialData?.name || "",
       description: initialData?.description || "",
-      status: initialData?.status || "ToDo",
+      status: initialData?.status || "Planning",
       startDate: initialData?.startDate
         ? format(new Date(initialData.startDate), "yyyy-MM-dd")
         : "",
@@ -132,10 +132,12 @@ export function ProjectForm({
                 <SelectValue placeholder="Select a status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ToDo">To Do</SelectItem>
-                <SelectItem value="WorkInProgress">Work In Progress</SelectItem>
-                <SelectItem value="UnderReview">Under Review</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
+                <SelectItem value="PLANNING">Planning</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                <SelectItem value="ARCHIVED">Archived</SelectItem>
               </SelectContent>
             </Select>
           )}

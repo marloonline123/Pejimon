@@ -1,4 +1,4 @@
-import prisma from "../../lib/prismaClient.js";
+import { prismaTanentAware } from "../../lib/prismaClient.js";
 export const index = async (req, res) => {
     try {
         const projectSlug = req.query.projectSlug;
@@ -9,7 +9,7 @@ export const index = async (req, res) => {
         const skip = (page - 1) * limit;
         let projectId = undefined;
         if (projectSlug) {
-            const project = await prisma.project.findFirst({
+            const project = await prismaTanentAware.project.findFirst({
                 where: { slug: projectSlug },
                 select: { id: true },
             });
@@ -34,7 +34,7 @@ export const index = async (req, res) => {
             where.status = status;
         }
         const [tasks, total] = await Promise.all([
-            prisma.task.findMany({
+            prismaTanentAware.task.findMany({
                 where,
                 include: {
                     taskAssignments: {
@@ -46,7 +46,7 @@ export const index = async (req, res) => {
                 take: limit,
                 orderBy: { createdAt: "desc" },
             }),
-            prisma.task.count({ where }),
+            prismaTanentAware.task.count({ where }),
         ]);
         res.status(200).json({
             success: true,
@@ -69,16 +69,15 @@ export const index = async (req, res) => {
 };
 export const store = async (req, res) => {
     try {
-        const project = await prisma.project.findUnique({
+        const project = await prismaTanentAware.project.findUnique({
             where: { id: Number(req.body.projectId) },
         });
         if (!project) {
             res.status(404).json({ success: false, message: "Project not found" });
             return;
         }
-        const assignedUserIds = req.body.assignedUserIds ||
-            (req.body.assignedUserId ? [req.body.assignedUserId] : []);
-        const task = await prisma.task.create({
+        const userId = res.locals.user?.id;
+        const task = await prismaTanentAware.task.create({
             data: {
                 name: req.body.name,
                 description: req.body.description || null,
@@ -88,27 +87,14 @@ export const store = async (req, res) => {
                 startDate: req.body.startDate || null,
                 dueDate: req.body.dueDate || null,
                 points: req.body.points !== undefined ? Number(req.body.points) : null,
-                estimatedHours: req.body.estimatedHours !== undefined
-                    ? req.body.estimatedHours
-                    : null,
+                estimatedHours: req.body.estimatedHours !== undefined ? req.body.estimatedHours : 0,
                 projectId: project.id,
-                organizationId: project.organizationId,
-                authorId: req.body.authorId || project.createdById,
+                authorId: userId,
                 slug: req.body.name.toLowerCase().replace(/\s+/g, "-") +
                     "-" +
                     Date.now().toString().slice(-4),
-                ...(assignedUserIds.length > 0 && {
-                    taskAssignments: {
-                        create: assignedUserIds.map((userId) => ({
-                            userId: userId,
-                        })),
-                    },
-                }),
             },
             include: {
-                taskAssignments: {
-                    include: { user: true },
-                },
                 author: true,
             },
         });
@@ -131,7 +117,7 @@ export const store = async (req, res) => {
 export const show = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const task = await prisma.task.findFirst({
+        const task = await prismaTanentAware.task.findFirst({
             where: {
                 slug: slug,
             },
@@ -146,6 +132,13 @@ export const show = async (req, res) => {
                 attachments: true,
             },
         });
+        if (!task) {
+            res.status(404).json({
+                success: false,
+                message: "Task not found",
+            });
+            return;
+        }
         res.status(200).json({
             success: true,
             message: "Task fetched successfully",
@@ -163,19 +156,14 @@ export const show = async (req, res) => {
 export const update = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const existing = await prisma.task.findFirst({ where: { slug } });
+        const existing = await prismaTanentAware.task.findFirst({
+            where: { slug },
+        });
         if (!existing) {
             res.status(404).json({ success: false, message: "Task not found" });
             return;
         }
-        const assignedUserIds = req.body.assignedUserIds ||
-            (req.body.assignedUserId ? [req.body.assignedUserId] : undefined);
-        if (assignedUserIds !== undefined) {
-            await prisma.taskAssignment.deleteMany({
-                where: { taskId: existing.id },
-            });
-        }
-        const task = await prisma.task.update({
+        const task = await prismaTanentAware.task.update({
             where: {
                 id: existing.id,
             },
@@ -189,13 +177,6 @@ export const update = async (req, res) => {
                 dueDate: req.body.dueDate,
                 points: req.body.points,
                 estimatedHours: req.body.estimatedHours,
-                ...(assignedUserIds !== undefined && {
-                    taskAssignments: {
-                        create: assignedUserIds.map((userId) => ({
-                            userId: userId,
-                        })),
-                    },
-                }),
             },
             include: {
                 taskAssignments: {
@@ -223,12 +204,14 @@ export const update = async (req, res) => {
 export const destroy = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const existing = await prisma.task.findFirst({ where: { slug } });
+        const existing = await prismaTanentAware.task.findFirst({
+            where: { slug },
+        });
         if (!existing) {
             res.status(404).json({ success: false, message: "Task not found" });
             return;
         }
-        const task = await prisma.task.delete({
+        const task = await prismaTanentAware.task.delete({
             where: {
                 id: existing.id,
             },

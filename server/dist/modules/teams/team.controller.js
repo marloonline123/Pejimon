@@ -1,34 +1,46 @@
-import prisma from "../../lib/prismaClient.js";
-import crypto from "crypto";
+import auth from "../../config/auth.js";
+import { fromNodeHeaders } from "better-auth/node";
+import prisma, { prismaTanentAware } from "../../lib/prismaClient.js";
+import { toTeamResponseDto, toTeamListResponseDto, } from "../../modules/teams/team.mapper.js";
+import { getTenantId } from "../../lib/tenant-context.js";
 export const index = async (req, res) => {
     try {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 20;
         const search = req.query.search;
-        const skip = (page - 1) * limit;
-        const where = {};
+        const organizationId = res.locals.session?.activeOrganizationId;
+        // Use Better-Auth API to list organization teams
+        const teams = await auth.api.listOrganizationTeams({
+            query: {
+                organizationId: organizationId,
+            },
+            headers: fromNodeHeaders(req.headers),
+        });
+        let filteredTeams = Array.isArray(teams) ? teams : [];
         if (search) {
-            where.name = { contains: search, mode: "insensitive" };
+            filteredTeams = filteredTeams.filter((t) => t.name.toLowerCase().includes(search.toLowerCase()));
         }
-        const [teams, total] = await Promise.all([
-            prisma.team.findMany({
-                where,
-                include: {
-                    teamMembers: {
-                        include: {
-                            user: true,
-                        },
-                    },
-                },
-                skip,
-                take: limit,
-                orderBy: { name: "asc" },
-            }),
-            prisma.team.count({ where }),
-        ]);
+        const teamIds = filteredTeams.map((t) => t.id);
+        const teamMembers = await prisma.teamMember.findMany({
+            where: {
+                teamId: { in: teamIds },
+            },
+            include: {
+                user: true,
+            },
+        });
+        const total = filteredTeams.length;
+        const skip = (page - 1) * limit;
+        const paginatedTeams = filteredTeams
+            .slice(skip, skip + limit)
+            .map((t) => ({
+            ...t,
+            teamMembers: teamMembers.filter((tm) => tm.teamId === t.id),
+        }));
+        console.log("team: ", teams);
         res.status(200).json({
             success: true,
-            data: teams,
+            data: toTeamListResponseDto(paginatedTeams),
             meta: {
                 total,
                 page,
@@ -38,7 +50,7 @@ export const index = async (req, res) => {
         });
     }
     catch (error) {
-        console.error("Prisma Error:", error);
+        console.error("Better-Auth Error:", error);
         res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -48,45 +60,48 @@ export const index = async (req, res) => {
 };
 export const store = async (req, res) => {
     try {
-        let organizationId = req.body.organizationId;
-        if (!organizationId) {
-            const defaultOrg = await prisma.organization.findFirst();
-            if (defaultOrg) {
-                organizationId = defaultOrg.id;
-            }
-            else {
-                const newOrg = await prisma.organization.create({
-                    data: {
-                        id: crypto.randomUUID(),
-                        name: "Default Organization",
-                        slug: "default-organization",
-                    },
-                });
-                organizationId = newOrg.id;
-            }
-        }
-        const managerId = req.body.managerId || req.body.teamManagerId;
+        const organizationId = getTenantId();
+        const managerId = req.body.managerId;
         const userIds = (req.body.userIds || []).filter((id) => id !== managerId);
-        const teamUsersCreate = [];
+        // Create team via Better-Auth organization plugin
+        const team = await auth.api.createTeam({
+            body: {
+                name: req.body.name,
+                organizationId: organizationId,
+                slug: req.body.name.toLowerCase().replace(/\s+/g, "-") +
+                    "-" +
+                    Date.now().toString().slice(-4),
+                description: req.body.description ?? null,
+            },
+            headers: fromNodeHeaders(req.headers),
+        });
+        const teamMembersData = [];
         if (managerId) {
-            teamUsersCreate.push({ userId: managerId, role: "MANAGER" });
+            teamMembersData.push({
+                organizationId: organizationId,
+                teamId: team.id,
+                userId: managerId,
+                role: "MANAGER",
+                membershipKey: `${team.id}:${managerId}`,
+            });
         }
         for (const uId of userIds) {
-            teamUsersCreate.push({ userId: uId, role: "MEMBER" });
+            teamMembersData.push({
+                organizationId: organizationId,
+                teamId: team.id,
+                userId: uId,
+                role: "MEMBER",
+                membershipKey: `${team.id}:${uId}`,
+            });
         }
-        const team = await prisma.team.create({
-            data: {
-                id: crypto.randomUUID(),
-                name: req.body.name,
-                description: req.body.description ?? null,
-                slug: req.body.name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now().toString().slice(-4),
-                organizationId,
-                ...(teamUsersCreate.length > 0 && {
-                    teamMembers: {
-                        create: teamUsersCreate,
-                    },
-                }),
-            },
+        if (teamMembersData.length > 0) {
+            await prisma.teamMember.createMany({
+                data: teamMembersData,
+                skipDuplicates: true,
+            });
+        }
+        const fullTeam = await prismaTanentAware.team.findFirst({
+            where: { id: team.id },
             include: {
                 teamMembers: {
                     include: { user: true },
@@ -98,11 +113,11 @@ export const store = async (req, res) => {
             flash: {
                 success: "Team created successfully",
             },
-            data: team,
+            data: toTeamResponseDto(fullTeam || team),
         });
     }
     catch (error) {
-        console.error("Prisma Error:", error);
+        console.error("Team Store Error:", error);
         res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -113,7 +128,7 @@ export const store = async (req, res) => {
 export const show = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const team = await prisma.team.findFirst({
+        const team = await prismaTanentAware.team.findFirst({
             where: {
                 slug: slug,
             },
@@ -126,13 +141,20 @@ export const show = async (req, res) => {
                 },
             },
         });
+        if (!team) {
+            res.status(404).json({
+                success: false,
+                message: "Team not found",
+            });
+            return;
+        }
         res.status(200).json({
             success: true,
-            data: team,
+            data: toTeamResponseDto(team),
         });
     }
     catch (error) {
-        console.error("Prisma Error:", error);
+        console.error("Team Show Error:", error);
         res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -143,48 +165,62 @@ export const show = async (req, res) => {
 export const update = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const existing = await prisma.team.findFirst({ where: { slug } });
+        const existing = await prismaTanentAware.team.findFirst({
+            where: { slug },
+        });
         if (!existing) {
             res.status(404).json({ success: false, message: "Team not found" });
             return;
         }
-        const managerId = req.body.managerId || req.body.teamManagerId;
+        // Update team via Better-Auth organization plugin
+        await auth.api.updateTeam({
+            body: {
+                teamId: existing.id,
+                data: {
+                    name: req.body.name,
+                    description: req.body.description ?? null,
+                },
+            },
+            headers: fromNodeHeaders(req.headers),
+        });
+        const managerId = req.body.managerId;
         const userIds = req.body.userIds;
         if (userIds !== undefined || managerId !== undefined) {
             await prisma.teamMember.deleteMany({
-                where: {
-                    teamId: existing.id,
-                },
+                where: { teamId: existing.id },
             });
-            const teamUsersCreate = [];
+            const teamMembersData = [];
             if (managerId) {
-                teamUsersCreate.push({ userId: managerId, role: "MANAGER" });
+                teamMembersData.push({
+                    organizationId: existing.organizationId,
+                    teamId: existing.id,
+                    userId: managerId,
+                    role: "MANAGER",
+                    membershipKey: `${existing.id}:${managerId}`,
+                });
             }
             if (userIds) {
                 for (const uId of userIds) {
                     if (uId !== managerId) {
-                        teamUsersCreate.push({ userId: uId, role: "MEMBER" });
+                        teamMembersData.push({
+                            organizationId: existing.organizationId,
+                            teamId: existing.id,
+                            userId: uId,
+                            role: "MEMBER",
+                            membershipKey: `${existing.id}:${uId}`,
+                        });
                     }
                 }
             }
-            if (teamUsersCreate.length > 0) {
+            if (teamMembersData.length > 0) {
                 await prisma.teamMember.createMany({
-                    data: teamUsersCreate.map((tu) => ({
-                        teamId: existing.id,
-                        userId: tu.userId,
-                        role: tu.role,
-                    })),
+                    data: teamMembersData,
+                    skipDuplicates: true,
                 });
             }
         }
-        const team = await prisma.team.update({
-            where: {
-                id: existing.id,
-            },
-            data: {
-                name: req.body.name,
-                description: req.body.description ?? null,
-            },
+        const updatedTeam = await prismaTanentAware.team.findFirst({
+            where: { id: existing.id },
             include: {
                 teamMembers: {
                     include: { user: true },
@@ -196,11 +232,11 @@ export const update = async (req, res) => {
             flash: {
                 success: "Team updated successfully",
             },
-            data: team,
+            data: toTeamResponseDto(updatedTeam || existing),
         });
     }
     catch (error) {
-        console.error("Prisma Error:", error);
+        console.error("Team Update Error:", error);
         res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -211,26 +247,32 @@ export const update = async (req, res) => {
 export const destroy = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const existing = await prisma.team.findFirst({ where: { slug } });
+        const organizationId = res.locals.session?.activeOrganizationId;
+        const existing = await prismaTanentAware.team.findFirst({
+            where: { slug },
+        });
         if (!existing) {
             res.status(404).json({ success: false, message: "Team not found" });
             return;
         }
-        const team = await prisma.team.delete({
-            where: {
-                id: existing.id,
+        // Remove team via Better-Auth organization plugin
+        await auth.api.removeTeam({
+            body: {
+                teamId: existing.id,
+                organizationId: organizationId,
             },
+            headers: fromNodeHeaders(req.headers),
         });
         res.status(200).json({
             success: true,
             flash: {
                 success: "Team deleted successfully",
             },
-            data: team,
+            data: toTeamResponseDto(existing),
         });
     }
     catch (error) {
-        console.error("Prisma Error:", error);
+        console.error("Better-Auth Error:", error);
         res.status(500).json({
             success: false,
             message: "Internal server error",

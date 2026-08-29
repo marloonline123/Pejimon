@@ -13,8 +13,13 @@ import projectRouter from "@/modules/projects/project.routes.js";
 import taskRouter from "@/modules/tasks/task.routes.js";
 import teamRouter from "@/modules/teams/team.routes.js";
 import userRouter from "@/modules/users/user.routes.js";
+import organizationRouter from "@/modules/organizations/organization.routes.js";
+import subscriptionRouter from "@/modules/subscriptions/subscription.routes.js";
 import { toNodeHandler } from "better-auth/node";
 import auth from "@/config/auth.js";
+
+import path from "path";
+import { tenantMiddleware } from "./middleware/tenant.js";
 
 dotenv.config();
 
@@ -24,7 +29,11 @@ const app: Application = Express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:3000",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+    ],
     credentials: true,
   }),
 );
@@ -39,15 +48,22 @@ app.use(Express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+// Static Files
+app.use("/uploads", Express.static(path.join(process.cwd(), "uploads")));
+
 // Routing
 app.get("/health", (req: Request, res: Response, next: NextFunction) => {
   res.send("Server is running");
 });
 
-app.use("/projects", projectRouter);
-app.use("/tasks", taskRouter);
-app.use("/teams", teamRouter);
 app.use("/users", userRouter);
+app.use("/organizations", organizationRouter);
+app.use("/subscriptions", subscriptionRouter);
+
+// Tenant-scoped routes
+app.use("/projects", tenantMiddleware, projectRouter);
+app.use("/tasks", tenantMiddleware, taskRouter);
+app.use("/teams", tenantMiddleware, teamRouter);
 
 // Global error handling
 

@@ -52,7 +52,7 @@ export const baseQueryWithToast: BaseQueryFn<
         window.location.href = "/login";
       }
     }
-    
+
     // You could also show an error toast here if you uncommented the toast logic
   }
 
