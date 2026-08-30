@@ -1,1 +1,0 @@
-{"version":3,"file":"subscription.schema.js","sourceRoot":"","sources":["../../../src/modules/subscriptions/subscription.schema.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,CAAC,EAAE,MAAM,KAAK,CAAC;AAExB,MAAM,CAAC,MAAM,eAAe,GAAG,CAAC,CAAC,MAAM,CAAC;IACtC,MAAM,EAAE,CAAC,CAAC,MAAM,EAAE,CAAC,GAAG,CAAC,CAAC,EAAE,qBAAqB,CAAC;CACjD,CAAC,CAAC;AAIH,eAAe,eAAe,CAAC"}
