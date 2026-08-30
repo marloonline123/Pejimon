@@ -272,6 +272,9 @@ const auth = betterAuth({
       },
       teams: {
         enabled: true,
+        defaultTeam: {
+          enabled: false,
+        },
       },
 
       ac: ac,

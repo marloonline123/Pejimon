@@ -28,7 +28,7 @@ const projectSchema = z.object({
   status: z.string().min(1, "Status is required"),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
-  teamIds: z.array(z.number()).optional(),
+  teamIds: z.array(z.string()).optional(),
 });
 
 export type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -55,7 +55,7 @@ export function ProjectForm({
     defaultValues: {
       name: initialData?.name || "",
       description: initialData?.description || "",
-      status: initialData?.status || "Planning",
+      status: initialData?.status || "PLANNING",
       startDate: initialData?.startDate
         ? format(new Date(initialData.startDate), "yyyy-MM-dd")
         : "",
@@ -88,7 +88,12 @@ export function ProjectForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
+    <form
+      onSubmit={handleSubmit(onFormSubmit, (error) => {
+        console.log(error);
+      })}
+      className="space-y-4"
+    >
       {errors.root && (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {errors.root.message}

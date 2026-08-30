@@ -145,13 +145,9 @@ export default function SingleProjectPage() {
   const meta = tasksResponse?.meta;
 
   const handleCreateOrUpdate = async (data: TaskFormValues) => {
-    if (!projectData) return;
-
     const taskPayload = {
       ...data,
       projectId: projectData.id,
-      authorId: 1, // Hardcoded for now
-      assignedUserId: 1, // Hardcoded for now
     };
 
     if (taskToEdit) {

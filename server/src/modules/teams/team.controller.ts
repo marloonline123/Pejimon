@@ -5,10 +5,14 @@ import prisma, { prismaTanentAware } from "@/lib/prismaClient.js";
 import type {
   TeamSchema,
   TeamQuerySchema,
+  TeamMemberQuerySchema,
+  TeamProjectQuerySchema,
+  TeamTaskQuerySchema,
 } from "@/modules/teams/team.schema.js";
 import {
   toTeamResponseDto,
   toTeamListResponseDto,
+  toTeamMemberDto,
 } from "@/modules/teams/team.mapper.js";
 import { getTenantId } from "@/lib/tenant-context.js";
 
@@ -328,6 +332,251 @@ export const destroy = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     console.error("Better-Auth Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error,
+    });
+  }
+};
+
+export const getTeamMembers = async (
+  req: Request<{ slug: string }, {}, {}, TeamMemberQuerySchema>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { slug } = req.params;
+    const team = await prismaTanentAware.team.findFirst({
+      where: { slug },
+    });
+
+    if (!team) {
+      res.status(404).json({ success: false, message: "Team not found" });
+      return;
+    }
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const search = req.query.search;
+    const role = req.query.role;
+    const skip = (page - 1) * limit;
+
+    const where: any = {
+      teamId: team.id,
+    };
+
+    if (role && role !== "All") {
+      where.role = role.toUpperCase();
+    }
+
+    if (search) {
+      where.user = {
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+          { username: { contains: search, mode: "insensitive" } },
+        ],
+      };
+    }
+
+    const [members, total] = await Promise.all([
+      prismaTanentAware.teamMember.findMany({
+        where,
+        include: {
+          user: true,
+        },
+        skip,
+        take: limit,
+        orderBy: { createdAt: "asc" },
+      }),
+      prismaTanentAware.teamMember.count({ where }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: members.map(toTeamMemberDto),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Get Team Members Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error,
+    });
+  }
+};
+
+export const getTeamProjects = async (
+  req: Request<{ slug: string }, {}, {}, TeamProjectQuerySchema>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { slug } = req.params;
+    const team = await prismaTanentAware.team.findFirst({
+      where: { slug },
+    });
+
+    if (!team) {
+      res.status(404).json({ success: false, message: "Team not found" });
+      return;
+    }
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const search = req.query.search;
+    const status = req.query.status;
+    const skip = (page - 1) * limit;
+
+    const where: any = {
+      projectTeams: {
+        some: {
+          teamId: team.id,
+        },
+      },
+    };
+
+    if (status && status !== "All") {
+      where.status = status;
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [projects, total] = await Promise.all([
+      prismaTanentAware.project.findMany({
+        where,
+        include: {
+          projectTeams: {
+            include: { team: true },
+          },
+          createdBy: true,
+          tasks: {
+            select: { id: true, status: true },
+          },
+        },
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      }),
+      prismaTanentAware.project.count({ where }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: projects,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Get Team Projects Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error,
+    });
+  }
+};
+
+export const getTeamTasks = async (
+  req: Request<{ slug: string }, {}, {}, TeamTaskQuerySchema>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { slug } = req.params;
+    const team = await prismaTanentAware.team.findFirst({
+      where: { slug },
+    });
+
+    if (!team) {
+      res.status(404).json({ success: false, message: "Team not found" });
+      return;
+    }
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const search = req.query.search;
+    const status = req.query.status;
+    const priority = req.query.priority;
+    const userId = req.query.userId;
+    const skip = (page - 1) * limit;
+
+    // Get all user IDs in this team
+    const teamMembers = await prismaTanentAware.teamMember.findMany({
+      where: { teamId: team.id },
+      select: { userId: true },
+    });
+    const memberUserIds = teamMembers.map((tm) => tm.userId);
+
+    const where: any = {};
+
+    if (userId && userId !== "All") {
+      where.taskAssignments = {
+        some: { userId: userId },
+      };
+    } else {
+      where.taskAssignments = {
+        some: { userId: { in: memberUserIds } },
+      };
+    }
+
+    if (status && status !== "All") {
+      where.status = status;
+    }
+
+    if (priority && priority !== "All") {
+      where.priority = priority;
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [tasks, total] = await Promise.all([
+      prismaTanentAware.task.findMany({
+        where,
+        include: {
+          taskAssignments: {
+            include: { user: true },
+          },
+          project: true,
+          author: true,
+        },
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      }),
+      prismaTanentAware.task.count({ where }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: tasks,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Get Team Tasks Error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

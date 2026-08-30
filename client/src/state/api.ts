@@ -180,6 +180,74 @@ export const api = createApi({
       }),
       invalidatesTags: ["Teams"],
     }),
+    getTeamMembers: builder.query<
+      ApiResponse<TeamMember[]>,
+      {
+        teamSlug: string;
+        search?: string;
+        role?: string;
+        page?: number;
+        limit?: number;
+      }
+    >({
+      query: ({ teamSlug, search, role, page, limit }) => {
+        const queryParams = new URLSearchParams();
+        if (search) queryParams.append("search", search);
+        if (role && role !== "All") queryParams.append("role", role);
+        if (page) queryParams.append("page", page.toString());
+        if (limit) queryParams.append("limit", limit.toString());
+        const queryString = queryParams.toString();
+        return `/teams/${teamSlug}/members${queryString ? `?${queryString}` : ""}`;
+      },
+      providesTags: ["Teams"],
+    }),
+    getTeamProjects: builder.query<
+      ApiResponse<Project[]>,
+      {
+        teamSlug: string;
+        search?: string;
+        status?: string;
+        page?: number;
+        limit?: number;
+      }
+    >({
+      query: ({ teamSlug, search, status, page, limit }) => {
+        const queryParams = new URLSearchParams();
+        if (search) queryParams.append("search", search);
+        if (status && status !== "All") queryParams.append("status", status);
+        if (page) queryParams.append("page", page.toString());
+        if (limit) queryParams.append("limit", limit.toString());
+        const queryString = queryParams.toString();
+        return `/teams/${teamSlug}/projects${queryString ? `?${queryString}` : ""}`;
+      },
+      providesTags: ["Projects", "Teams"],
+    }),
+    getTeamTasks: builder.query<
+      ApiResponse<Task[]>,
+      {
+        teamSlug: string;
+        search?: string;
+        status?: string;
+        priority?: string;
+        userId?: string;
+        page?: number;
+        limit?: number;
+      }
+    >({
+      query: ({ teamSlug, search, status, priority, userId, page, limit }) => {
+        const queryParams = new URLSearchParams();
+        if (search) queryParams.append("search", search);
+        if (status && status !== "All") queryParams.append("status", status);
+        if (priority && priority !== "All")
+          queryParams.append("priority", priority);
+        if (userId && userId !== "All") queryParams.append("userId", userId);
+        if (page) queryParams.append("page", page.toString());
+        if (limit) queryParams.append("limit", limit.toString());
+        const queryString = queryParams.toString();
+        return `/teams/${teamSlug}/tasks${queryString ? `?${queryString}` : ""}`;
+      },
+      providesTags: ["Tasks", "Teams"],
+    }),
     getUsers: builder.query<ApiResponse<any[]>, void>({
       query: () => `/users`,
     }),
@@ -234,6 +302,9 @@ export const {
   useDeleteTaskMutation,
   useGetTeamsQuery,
   useGetTeamBySlugQuery,
+  useGetTeamMembersQuery,
+  useGetTeamProjectsQuery,
+  useGetTeamTasksQuery,
   useCreateTeamMutation,
   useUpdateTeamMutation,
   useDeleteTeamMutation,

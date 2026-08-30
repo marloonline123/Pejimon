@@ -106,6 +106,7 @@ export const store = async (req, res) => {
                 slug: slug,
                 logo: logoPath,
                 metadata: req.body.metadata ? JSON.parse(req.body.metadata) : undefined,
+                keepCurrentActiveOrganization: false,
             },
         });
         if (orgResult?.id) {
