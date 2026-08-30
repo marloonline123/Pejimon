@@ -69,7 +69,7 @@ export const index = async (req, res) => {
 };
 export const store = async (req, res) => {
     try {
-        const project = await prismaTanentAware.project.findUnique({
+        const project = await prismaTanentAware.project.findFirst({
             where: { id: Number(req.body.projectId) },
         });
         if (!project) {

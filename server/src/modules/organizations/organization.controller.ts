@@ -131,6 +131,7 @@ export const store = async (
         slug: slug,
         logo: logoPath,
         metadata: req.body.metadata ? JSON.parse(req.body.metadata) : undefined,
+        keepCurrentActiveOrganization: false,
       },
     });
 

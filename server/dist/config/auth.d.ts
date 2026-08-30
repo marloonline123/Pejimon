@@ -148,6 +148,9 @@ declare const auth: import("better-auth").Auth<{
             };
             teams: {
                 enabled: true;
+                defaultTeam: {
+                    enabled: false;
+                };
             };
             ac: {
                 newRole<const TRoleStatements extends import("better-auth/plugins").Statements>(statements: import("better-auth/plugins").RoleInput<{
@@ -262,6 +265,9 @@ declare const auth: import("better-auth").Auth<{
             };
             teams: {
                 enabled: true;
+                defaultTeam: {
+                    enabled: false;
+                };
             };
             ac: {
                 newRole<const TRoleStatements extends import("better-auth/plugins").Statements>(statements: import("better-auth/plugins").RoleInput<{
@@ -376,6 +382,9 @@ declare const auth: import("better-auth").Auth<{
             };
             teams: {
                 enabled: true;
+                defaultTeam: {
+                    enabled: false;
+                };
             };
             ac: {
                 newRole<const TRoleStatements extends import("better-auth/plugins").Statements>(statements: import("better-auth/plugins").RoleInput<{
@@ -491,6 +500,9 @@ declare const auth: import("better-auth").Auth<{
             };
             teams: {
                 enabled: true;
+                defaultTeam: {
+                    enabled: false;
+                };
             };
             ac: {
                 newRole<const TRoleStatements extends import("better-auth/plugins").Statements>(statements: import("better-auth/plugins").RoleInput<{
@@ -768,6 +780,9 @@ declare const auth: import("better-auth").Auth<{
             };
             teams: {
                 enabled: true;
+                defaultTeam: {
+                    enabled: false;
+                };
             };
             ac: {
                 newRole<const TRoleStatements extends import("better-auth/plugins").Statements>(statements: import("better-auth/plugins").RoleInput<{

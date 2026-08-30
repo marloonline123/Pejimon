@@ -128,16 +128,16 @@ graph TD
 
 ### 🔷 Phase 1: Foundation & Multi-Tenant Security Fixes *(Immediate Priority)*
 
-- [ ] **Task 1.1: Create `requireOrganization` Backend Middleware**
+- [x] **Task 1.1: Create `requireOrganization` Backend Middleware** *(Completed)*
   - **File:** `server/src/middleware/requireOrganization.ts`
-  - Read `activeOrganizationId` from `res.locals.session.session.activeOrganizationId` or request header `x-organization-id`.
-  - Validate database membership in `prisma.member`.
-  - Attach `req.organizationId` to Express Request context.
-- [ ] **Task 1.2: Refactor Project, Task, and Team Controllers for Strict Multi-Tenancy**
+  - Reads `activeOrganizationId` from `res.locals.session.session.activeOrganizationId` or request header `x-organization-id` / `x-tenant-id`.
+  - Validates user's authentic database membership in `prisma.member`.
+  - Attaches `req.organizationId` and user context to Request & Response locals and sets tenant context in `AsyncLocalStorage`.
+- [x] **Task 1.2: Refactor Project, Task, and Team Controllers for Strict Multi-Tenancy** *(Completed)*
   - **Files:** `server/src/modules/projects/project.controller.ts`, `server/src/modules/tasks/task.controller.ts`, `server/src/modules/teams/team.controller.ts`
-  - Remove hardcoded `"user-1"` and extract authentic user ID from `res.locals.session.user.id`.
-  - Enforce `where: { organizationId: req.organizationId }` on all `findMany`, `findFirst`, `update`, `delete` queries.
-  - Reject requests without valid active organization instead of creating a `"Default Organization"`.
+  - Removed all hardcoded user/author IDs and dynamically extracted authentic user IDs from `res.locals.user.id`.
+  - Enforced tenant isolation via `prismaTanentAware` and `setTenantContext` on all `findMany`, `findFirst`, `create`, `update`, and `delete` queries.
+  - Rejects unauthorized requests without valid active organization membership with explicit 401/403 status responses.
 
 ---
 

@@ -11,5 +11,25 @@ export const teamQuerySchema = z.object({
     page: z.coerce.number().min(1).optional(),
     limit: z.coerce.number().min(1).optional(),
 });
+export const teamMemberQuerySchema = z.object({
+    search: z.string().optional(),
+    role: z.string().optional(),
+    page: z.coerce.number().min(1).optional(),
+    limit: z.coerce.number().min(1).optional(),
+});
+export const teamProjectQuerySchema = z.object({
+    search: z.string().optional(),
+    status: z.string().optional(),
+    page: z.coerce.number().min(1).optional(),
+    limit: z.coerce.number().min(1).optional(),
+});
+export const teamTaskQuerySchema = z.object({
+    search: z.string().optional(),
+    status: z.string().optional(),
+    priority: z.string().optional(),
+    userId: z.string().optional(),
+    page: z.coerce.number().min(1).optional(),
+    limit: z.coerce.number().min(1).optional(),
+});
 export default teamSchema;
 //# sourceMappingURL=team.schema.js.map

@@ -1,3 +1,3 @@
-import type { Request, Response, NextFunction } from "express";
-export declare const tenantMiddleware: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export { requireOrganization, requireOrganization as tenantMiddleware } from "./requireOrganization.js";
+export { default } from "./requireOrganization.js";
 //# sourceMappingURL=tenant.d.ts.map

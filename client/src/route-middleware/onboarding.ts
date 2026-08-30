@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SessionData } from "./session";
 
-const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"];
+const AUTH_ROUTES = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+];
 
 export default function checkOnboarding(
   request: NextRequest,
@@ -38,9 +43,9 @@ export default function checkOnboarding(
   }
 
   // If user does NOT need onboarding but navigates to /onboarding -> redirect to /dashboard
-  if (!needsOnboarding && isOnboardingPage) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
+  // if (!needsOnboarding && isOnboardingPage) {
+  //   return NextResponse.redirect(new URL("/dashboard", request.url));
+  // }
 
   return undefined;
 }

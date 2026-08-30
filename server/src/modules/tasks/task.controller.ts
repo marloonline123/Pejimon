@@ -83,7 +83,7 @@ export const store = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const project = await prismaTanentAware.project.findUnique({
+    const project = await prismaTanentAware.project.findFirst({
       where: { id: Number(req.body.projectId) },
     });
 

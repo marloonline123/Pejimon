@@ -16,15 +16,17 @@ export interface Project {
   startDate?: string;
   endDate?: string;
   createdAt: string;
-  userId: number;
-  projectTeams?: { teamId: number; team?: Team }[];
+  userId?: number | string;
+  createdBy?: User;
+  projectTeams?: { teamId: string | number; team?: Team }[];
+  tasks?: { id: number; status: string }[];
 }
 
 export interface TeamMember {
   userId: string;
   teamId: string;
   role: string;
-  user?: User;
+  user?: User | null;
   createdAt?: string;
 }
 
@@ -69,13 +71,16 @@ export interface Task {
   status: Status | string;
   priority: Priority | string;
   tags?: string;
-  startDate: string;
-  dueDate: string;
-  points: number;
+  startDate?: string;
+  dueDate?: string;
+  points?: number;
   projectId: number;
-  authorId: number;
-  assignedUserId: number;
+  authorId?: number | string;
+  assignedUserId?: number | string;
   createdAt: string;
+  project?: Project;
+  author?: User;
+  taskAssignments?: { id: number; userId: string; user?: User }[];
 }
 
 export interface ProjectTeam {
